@@ -5,6 +5,13 @@
 # INDEX                     ####
 ## ## ## ## ## ## ## ## ## ## ##
 # Codes Masterlist
+# LBS Data
+# .. Sum quarterly data to yearly
+# .. Merge reporter codes
+# .. Merge partner codes
+# .. Convert years to long
+# .. Convert banking positions to wide
+# .. Generate unique identifier
 # CDIS Data
 # .. Merge reporter codes
 # .. Merge partner codes
@@ -16,13 +23,6 @@
 # Comtrade Data
 # .. Generate unique identifier
 # .. Convert to wide
-# LBS Data
-# .. Sum quarterly data to yearly
-# .. Merge reporter codes
-# .. Merge partner codes
-# .. Convert years to long
-# .. Convert banking positions to wide
-# .. Generate unique identifier
 # Merge Flow-Stock Data
 # .. Complete cases
 # FSI Data
@@ -50,6 +50,91 @@
 codes <- read.xlsx2("Data/Codes_Masterlist.xlsx", sheetName = "Codes")
 codes$ISO3166.3 <- as.character(codes$ISO3166.3)
 codes$ISO3166.2 <- as.character(codes$ISO3166.2)
+
+
+
+## ## ## ## ## ## ## ## ## ## ##
+# LBS DATA                  ####
+## ## ## ## ## ## ## ## ## ## ##
+
+LBS <- read.csv("Data/LBS/LBS.csv", fileEncoding="UTF-8-BOM")
+LBS <- subset(LBS, 
+              select = -c(X, Frequency, Measure, Currency.denomination,
+                          Currency.type.of.reporting.country, Parent.country,
+                          Type.of.reporting.institutions, Position.type, Period))
+LBS <- subset(LBS, Counterparty.sector == "A:All sectors")
+LBS <- subset(LBS, Type.of.instruments == "A:All instruments")
+LBS <- subset(LBS, select = -c(Type.of.instruments, Counterparty.sector))
+
+
+# .. Sum quarterly data to yearly ####
+LBS <- LBS[, -grep(number_range(1977,2007), names(LBS))]
+LBS[LBS == "\\" | LBS == "-"] <- NA
+LBS[4:44] <- lapply(LBS[4:44], as.numeric)
+LBS$yr2008 <- rowSums(LBS[grep("2008", names(LBS))], na.rm = T)
+LBS$yr2009 <- rowSums(LBS[grep("2009", names(LBS))], na.rm = T)
+LBS$yr2010 <- rowSums(LBS[grep("2010", names(LBS))], na.rm = T)
+LBS$yr2011 <- rowSums(LBS[grep("2011", names(LBS))], na.rm = T)
+LBS$yr2012 <- rowSums(LBS[grep("2012", names(LBS))], na.rm = T)
+LBS$yr2013 <- rowSums(LBS[grep("2013", names(LBS))], na.rm = T)
+LBS$yr2014 <- rowSums(LBS[grep("2014", names(LBS))], na.rm = T)
+LBS$yr2015 <- rowSums(LBS[grep("2015", names(LBS))], na.rm = T)
+LBS$yr2016 <- rowSums(LBS[grep("2016", names(LBS))], na.rm = T)
+LBS$yr2017 <- rowSums(LBS[grep("2017", names(LBS))], na.rm = T)
+LBS$yr2018 <- rowSums(LBS[grep("2018", names(LBS))], na.rm = T)
+LBS[grep("X", names(LBS))] <- NULL
+
+LBS$Balance.sheet.position <- substring(LBS$Balance.sheet.position, 3)
+LBS$Reporting.country <- substring(LBS$Reporting.country, 4)
+LBS$Counterparty.country <- substring(LBS$Counterparty.country, 4)
+
+
+# .. Merge reporter codes ####
+colnames(LBS)[colnames(LBS) == "Reporting.country"] <- "Country"
+LBS <- merge(LBS, codes[, c("Country", "ISO3166.3")], by = "Country", all.x = TRUE)
+noISO <- subset(LBS, is.na(LBS$ISO3166.3))
+unique(noISO$Country)
+# Only aggregates remain, we can drop the NAs.
+LBS <- subset(LBS, !is.na(LBS$ISO3166.3))
+colnames(LBS)[colnames(LBS) == "Country"] <- "reporter"
+colnames(LBS)[colnames(LBS) == "ISO3166.3"] <- "reporter.ISO"
+
+
+# .. Merge partner codes ####
+colnames(LBS)[colnames(LBS) == "Counterparty.country"] <- "Country"
+LBS <- merge(LBS, codes[, c("Country", "ISO3166.3")], by = "Country", all.x = TRUE)
+noISO <- subset(LBS, is.na(LBS$ISO3166.3))
+unique(noISO$Country)
+# Only aggregates or dissolved states remain, we can drop the NAs.
+LBS <- subset(LBS, !is.na(LBS$ISO3166.3))
+colnames(LBS)[colnames(LBS) == "Country"] <- "partner"
+colnames(LBS)[colnames(LBS) == "ISO3166.3"] <- "partner.ISO"
+
+
+# .. Convert years to long ####
+LBS <- gather(LBS, year, value, yr2008:yr2018)
+LBS$year <- as.numeric(substring(LBS$year, 3))
+LBS <- subset(LBS, value != 0)
+LBS$value <- LBS$value*10^6
+# Data is given in millions
+
+
+# .. Convert banking positions to wide ####
+LBS[LBS == "Total claims"] <- "Claims"
+LBS[LBS == "Total liabilities"] <- "Liabilities"
+LBS <- spread(LBS, Balance.sheet.position, value)
+missing <- apply(LBS, MARGIN = 1, function(x) sum(is.na(x))) == 2
+LBS <- LBS[which(missing == FALSE),]
+rm(missing)
+
+
+# .. Generate unique identifier ####
+LBS$id <- paste(LBS$reporter.ISO, LBS$partner.ISO, LBS$year, sep = "_")
+LBS <- LBS[, c("id", "reporter", "reporter.ISO",
+               "partner", "partner.ISO", "year",
+               "Claims", "Liabilities")]
+LBS <- LBS[order(LBS$id), ]
+rm(noISO)
 
 
 
@@ -203,96 +288,17 @@ colnames(comtrade)[colnames(comtrade) == "Re-Import"] <- "ReImport"
 
 
 ## ## ## ## ## ## ## ## ## ## ##
-# LBS DATA                  ####
-## ## ## ## ## ## ## ## ## ## ##
-
-LBS <- read.csv("Data/LBS/LBS.csv", fileEncoding="UTF-8-BOM")
-LBS <- subset(LBS, 
-              select = -c(X, Frequency, Measure, Currency.denomination,
-                          Currency.type.of.reporting.country, Parent.country,
-                          Type.of.reporting.institutions, Position.type, Period))
-LBS <- subset(LBS, Counterparty.sector == "A:All sectors")
-LBS <- subset(LBS, Type.of.instruments == "A:All instruments")
-LBS <- subset(LBS, select = -c(Type.of.instruments, Counterparty.sector))
-
-
-# .. Sum quarterly data to yearly ####
-LBS <- LBS[, -grep(number_range(1977,2007), names(LBS))]
-LBS[LBS == "\\" | LBS == "-"] <- NA
-LBS[4:44] <- lapply(LBS[4:44], as.numeric)
-LBS$yr2008 <- rowSums(LBS[grep("2008", names(LBS))], na.rm = T)
-LBS$yr2009 <- rowSums(LBS[grep("2009", names(LBS))], na.rm = T)
-LBS$yr2010 <- rowSums(LBS[grep("2010", names(LBS))], na.rm = T)
-LBS$yr2011 <- rowSums(LBS[grep("2011", names(LBS))], na.rm = T)
-LBS$yr2012 <- rowSums(LBS[grep("2012", names(LBS))], na.rm = T)
-LBS$yr2013 <- rowSums(LBS[grep("2013", names(LBS))], na.rm = T)
-LBS$yr2014 <- rowSums(LBS[grep("2014", names(LBS))], na.rm = T)
-LBS$yr2015 <- rowSums(LBS[grep("2015", names(LBS))], na.rm = T)
-LBS$yr2016 <- rowSums(LBS[grep("2016", names(LBS))], na.rm = T)
-LBS$yr2017 <- rowSums(LBS[grep("2017", names(LBS))], na.rm = T)
-LBS$yr2018 <- rowSums(LBS[grep("2018", names(LBS))], na.rm = T)
-LBS[grep("X", names(LBS))] <- NULL
-
-LBS$Balance.sheet.position <- substring(LBS$Balance.sheet.position, 3)
-LBS$Reporting.country <- substring(LBS$Reporting.country, 4)
-LBS$Counterparty.country <- substring(LBS$Counterparty.country, 4)
-
-
-# .. Merge reporter codes ####
-colnames(LBS)[colnames(LBS) == "Reporting.country"] <- "Country"
-LBS <- merge(LBS, codes[, c("Country", "ISO3166.3")], by = "Country", all.x = TRUE)
-noISO <- subset(LBS, is.na(LBS$ISO3166.3))
-unique(noISO$Country)
-# Only aggregates remain, we can drop the NAs.
-LBS <- subset(LBS, !is.na(LBS$ISO3166.3))
-colnames(LBS)[colnames(LBS) == "Country"] <- "reporter"
-colnames(LBS)[colnames(LBS) == "ISO3166.3"] <- "reporter.ISO"
-
-
-# .. Merge partner codes ####
-colnames(LBS)[colnames(LBS) == "Counterparty.country"] <- "Country"
-LBS <- merge(LBS, codes[, c("Country", "ISO3166.3")], by = "Country", all.x = TRUE)
-noISO <- subset(LBS, is.na(LBS$ISO3166.3))
-unique(noISO$Country)
-# Only aggregates or dissolved states remain, we can drop the NAs.
-LBS <- subset(LBS, !is.na(LBS$ISO3166.3))
-colnames(LBS)[colnames(LBS) == "Country"] <- "partner"
-colnames(LBS)[colnames(LBS) == "ISO3166.3"] <- "partner.ISO"
-
-
-# .. Convert years to long ####
-LBS <- gather(LBS, year, value, yr2008:yr2018)
-LBS$year <- as.numeric(substring(LBS$year, 3))
-LBS <- subset(LBS, value != 0)
-LBS$value <- LBS$value*10^6
-# Data is given in millions
-
-
-# .. Convert banking positions to wide ####
-LBS[LBS == "Total claims"] <- "Claims"
-LBS[LBS == "Total liabilities"] <- "Liabilities"
-LBS <- spread(LBS, Balance.sheet.position, value)
-missing <- apply(LBS, MARGIN = 1, function(x) sum(is.na(x))) == 2
-LBS <- LBS[which(missing == FALSE),]
-rm(missing)
-
-
-# .. Generate unique identifier ####
-LBS$id <- paste(LBS$reporter.ISO, LBS$partner.ISO, LBS$year, sep = "_")
-LBS <- LBS[, c("id", "reporter", "reporter.ISO",
-               "partner", "partner.ISO", "year",
-               "Claims", "Liabilities")]
-LBS <- LBS[order(LBS$id), ]
-rm(noISO)
-
-
-
-## ## ## ## ## ## ## ## ## ## ##
 # MERGE FLOW-STOCK DATA     ####
 ## ## ## ## ## ## ## ## ## ## ##
 
-panel <- merge(CDIS[, c("id",
-                        "DIdI", "DII", "DIdO", "DIO")], 
+panel <- merge(LBS[, c("id",
+                       "Claims", "Liabilities")],
+               CDIS[, c("id",
+                        "DIdI", "DII", "DIdO", "DIO")],
+               by = c("id"),
+               all = TRUE)
+               
+panel <- merge(panel,
                CPIS[, c("id",
                         "PIA", "PIL", "PIdL")],
                by = c("id"),
@@ -304,12 +310,6 @@ panel <- merge(panel,
                by = c("id"),
                all = TRUE)
 
-panel <- merge(panel, 
-               LBS[, c("id",
-                       "Claims", "Liabilities")],
-               by = c("id"),
-               all = TRUE)
-
 panel <- panel[order(panel$id), ]
 
 
@@ -317,10 +317,11 @@ panel <- panel[order(panel$id), ]
 allmissing <- which(rowSums(is.na(panel)) == ncol(panel)-1)
 # None
 rm(allmissing)
-subset(panel, DIdI == 0 & DII == 0 & DIdO == 0 & DIO == 0 &
-         PIA == 0 & PIL == 0 & PIdL == 0 &
-         Export == 0 & Import == 0 & ReExport == 0 & ReImport == 0 &
-         Claims == 0 & Liabilities == 0)
+subset(panel, 
+       Claims == 0 & Liabilities == 0,
+       DIdI == 0 & DII == 0 & DIdO == 0 & DIO == 0 &
+       PIA == 0 & PIL == 0 & PIdL == 0 &
+       Export == 0 & Import == 0 & ReExport == 0 & ReImport == 0)
 # None
 
 
@@ -576,11 +577,11 @@ panel <- panel %>%
 ## ## ## ## ## ## ## ## ## ## ##
 
 save(panel, file = "Data/panel.RData")
+save(LBS, file = "Data/LBS/LBS_clean.Rdata")
 save(CDIS, file = "Data/CDIS/CDIS_clean.Rdata")
 save(CPIS, file = "Data/CPIS/CPIS_clean.Rdata")
 save(comtrade, file = "Data/Comtrade/comtrade_clean.Rdata")
-save(LBS, file = "Data/LBS/LBS_clean.Rdata")
 save(FSI, file = "Data/FSI/FSI_clean.Rdata")
 save(WDI, file = "Data/WDI/WDI_clean.Rdata")
 
-rm(panel, codes, CDIS, CPIS, comtrade, LBS, FSI, WDI, KFSI)
+rm(panel, codes, LBS, CDIS, CPIS, comtrade, FSI, WDI, KFSI)
