@@ -1,0 +1,504 @@
+---
+title: "Conduits Data Visualization"
+author: "Alice Lepissier"
+date: "August 13, 2018"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("C:/cloudstorage/googledrive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/Scripts/") # Alice work
+```
+
+```{r preamble, echo = FALSE, message = FALSE, warning = FALSE}
+## ## ## ## ## ## ## ## ## ## ##
+# PREAMBLE                  ####
+## ## ## ## ## ## ## ## ## ## ##
+library(dplyr)
+library(geosphere)
+library(leaflet)
+# devtools::install_github('ropenscilabs/rnaturalearth')
+# library(rnaturalearth) 
+# library(networkD3)
+# devtools::install_github("timelyportfolio/parsetR")
+library(parsetR)
+library(RColorBrewer)
+# library(rgdal)
+library(xlsx)
+```
+
+```{r geodata, echo = FALSE, message = FALSE}
+## ## ## ## ## ## ## ## ## ## ##
+# IMPORT GEOSPATIAL DATA    ####
+## ## ## ## ## ## ## ## ## ## ##
+
+centroids <- read.xlsx2("../Data/Codes_Masterlist.xlsx", sheetName = "Codes")
+centroids <- subset(centroids, select = c(Country, Longitude, Latitude))
+centroids$Country <- as.character(centroids$Country)
+centroids$Longitude <- as.numeric(as.character(centroids$Longitude))
+centroids$Latitude <- as.numeric(as.character(centroids$Latitude))
+
+load("../Results/panelSJ.RData")
+```
+
+
+
+# Trade
+
+The countries with the greatest exposure to illicit financial flows in trade are Hong Kong, Singapore, Belgium, Hungary, and Vietnam.
+```{r trade, echo = FALSE}
+## ## ## ## ## ## ## ## ## ## ##
+# FOR TRADE                 ####
+## ## ## ## ## ## ## ## ## ## ##
+
+conduits <- c("Hong Kong", "Singapore", "Belgium", "Hungary", "Vietnam")
+```
+
+
+## Exports
+```{r Export, echo = FALSE}
+# .. Exports ####
+viz <- subset(panelSJ, year == 2015,
+              select = c(reporter, partner,
+                         pSecrecyScore,
+                         Export))
+viz <- subset(viz, reporter %in% conduits)
+viz <- subset(viz, !is.na(viz$Export))
+viz$Export <- viz$Export /10^6
+
+viz <- viz %>%
+  left_join(centroids, by = c('reporter' = 'Country')) %>%
+  left_join(centroids, by = c('partner' = 'Country'))
+viz <- na.omit(viz)
+
+viz$secrecy <- (10-1)/(max(viz$pSecrecyScore)-min(viz$pSecrecyScore)) * (viz$pSecrecyScore-min(viz$pSecrecyScore)) + 1
+# Map variable onto 1-10 range
+# range(viz$secrecy)
+
+flows <- gcIntermediate(viz[,5:6], viz[,7:8], sp = TRUE, addStartEnd = TRUE)
+
+flows$counts <- viz$Export
+flows$origins <- viz$reporter
+flows$destinations <- viz$partner
+flows$secrecy <- viz$secrecy
+flows$pSecrecyScore <- viz$pSecrecyScore
+
+hover <- paste0(flows$origins, " to ", 
+                flows$destinations, ": ",
+                "$",
+                format(round(flows$counts, 0), big.mark = ",", trim = T),
+                " million",
+                "; ",
+                flows$destinations, " secrecy score: ",
+                flows$pSecrecyScore)
+
+pal <- colorFactor(brewer.pal(4, "Set2"), flows$origins)
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolylines(data = flows, weight = ~secrecy, label = hover, 
+               group = ~origins, color = ~pal(origins)) %>%
+  addLayersControl(overlayGroups = unique(flows$origins), 
+                   options = layersControlOptions(collapsed = FALSE))
+
+parset(viz, dimensions = c('reporter', 'partner'),
+       value = htmlwidgets::JS("function(d){return d.Export}"),
+       tension = 0.5)
+```
+
+
+## Imports
+```{r Import, echo = FALSE}
+# .. Imports ####
+viz <- subset(panelSJ, year == 2015,
+              select = c(reporter, partner,
+                         pSecrecyScore,
+                         Import))
+viz <- subset(viz, reporter %in% conduits)
+viz <- subset(viz, !is.na(viz$Import))
+viz$Import <- viz$Import /10^6
+
+viz <- viz %>%
+  left_join(centroids, by = c('reporter' = 'Country')) %>%
+  left_join(centroids, by = c('partner' = 'Country'))
+viz <- na.omit(viz)
+
+viz$secrecy <- (10-1)/(max(viz$pSecrecyScore)-min(viz$pSecrecyScore)) * (viz$pSecrecyScore-min(viz$pSecrecyScore)) + 1
+# Map variable onto 1-10 range
+# range(viz$secrecy)
+
+flows <- gcIntermediate(viz[,5:6], viz[,7:8], sp = TRUE, addStartEnd = TRUE)
+
+flows$counts <- viz$Import
+flows$origins <- viz$reporter
+flows$destinations <- viz$partner
+flows$secrecy <- viz$secrecy
+flows$pSecrecyScore <- viz$pSecrecyScore
+
+hover <- paste0(flows$origins, " to ", 
+                flows$destinations, ": ",
+                "$",
+                format(round(flows$counts, 0), big.mark = ",", trim = T),
+                " million",
+                "; ",
+                flows$destinations, " secrecy score: ",
+                flows$pSecrecyScore)
+
+pal <- colorFactor(brewer.pal(4, "Set2"), flows$origins)
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolylines(data = flows, weight = ~secrecy, label = hover, 
+               group = ~origins, color = ~pal(origins)) %>%
+  addLayersControl(overlayGroups = unique(flows$origins), 
+                   options = layersControlOptions(collapsed = FALSE))
+
+parset(viz, dimensions = c('reporter', 'partner'),
+       value = htmlwidgets::JS("function(d){return d.Import}"),
+       tension = 0.5)
+```
+
+
+
+# Direct Investment
+
+The countries with the greatest exposure to illicit financial flows in Foreign Direct Investment (FDI) are Luxembourg, Bermuda, Samoa, Mauritius, and the Marhshall Islands.
+```{r directinv, echo = FALSE}
+## ## ## ## ## ## ## ## ## ## ##
+# FOR DIRECT INVESTMENT     ####
+## ## ## ## ## ## ## ## ## ## ##
+
+conduits <- c("Luxembourg", "Bermuda", "Samoa", "Mauritius", "Marshall Islands")
+```
+
+
+# Outward (derived)
+```{r DIdO, echo = FALSE}
+# .. Outward (derived) ####
+viz <- subset(panelSJ, year == 2015,
+              select = c(reporter, partner,
+                         pSecrecyScore,
+                         DIdO))
+viz <- subset(viz, reporter %in% conduits)
+viz <- subset(viz, !is.na(viz$DIdO))
+viz$DIdO <- viz$DIdO /10^6
+
+viz <- viz %>%
+  left_join(centroids, by = c('reporter' = 'Country')) %>%
+  left_join(centroids, by = c('partner' = 'Country'))
+viz <- na.omit(viz)
+
+viz$secrecy <- (10-1)/(max(viz$pSecrecyScore)-min(viz$pSecrecyScore)) * (viz$pSecrecyScore-min(viz$pSecrecyScore)) + 1
+# Map variable onto 1-10 range
+# range(viz$secrecy)
+
+flows <- gcIntermediate(viz[,5:6], viz[,7:8], sp = TRUE, addStartEnd = TRUE)
+
+flows$counts <- viz$DIdO
+flows$origins <- viz$reporter
+flows$destinations <- viz$partner
+flows$secrecy <- viz$secrecy
+flows$pSecrecyScore <- viz$pSecrecyScore
+
+hover <- paste0(flows$origins, " to ", 
+                flows$destinations, ": ",
+                "$",
+                format(round(flows$counts, 0), big.mark = ",", trim = T),
+                " million",
+                "; ",
+                flows$destinations, " secrecy score: ",
+                flows$pSecrecyScore)
+
+pal <- colorFactor(brewer.pal(4, "Set1"), flows$origins)
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolylines(data = flows, weight = ~secrecy, label = hover, 
+               group = ~origins, color = ~pal(origins)) %>%
+  addLayersControl(overlayGroups = unique(flows$origins), 
+                   options = layersControlOptions(collapsed = FALSE))
+
+parset(viz, dimensions = c('reporter', 'partner'),
+       value = htmlwidgets::JS("function(d){return d.DIdO}"),
+       tension = 0.5)
+```
+
+
+## Inward
+```{r DII, echo = FALSE}
+# .. Inward ####
+viz <- subset(panelSJ, year == 2015,
+              select = c(reporter, partner,
+                         pSecrecyScore,
+                         DII))
+viz <- subset(viz, reporter %in% conduits)
+viz <- subset(viz, !is.na(viz$DII))
+viz$DII <- viz$DII /10^6
+
+viz <- viz %>%
+  left_join(centroids, by = c('reporter' = 'Country')) %>%
+  left_join(centroids, by = c('partner' = 'Country'))
+viz <- na.omit(viz)
+
+viz$secrecy <- (10-1)/(max(viz$pSecrecyScore)-min(viz$pSecrecyScore)) * (viz$pSecrecyScore-min(viz$pSecrecyScore)) + 1
+# Map variable onto 1-10 range
+# range(viz$secrecy)
+
+flows <- gcIntermediate(viz[,5:6], viz[,7:8], sp = TRUE, addStartEnd = TRUE)
+
+flows$counts <- viz$DII
+flows$origins <- viz$reporter
+flows$destinations <- viz$partner
+flows$secrecy <- viz$secrecy
+flows$pSecrecyScore <- viz$pSecrecyScore
+
+hover <- paste0(flows$origins, " to ", 
+                flows$destinations, ": ",
+                "$",
+                format(round(flows$counts, 0), big.mark = ",", trim = T),
+                " million",
+                "; ",
+                flows$destinations, " secrecy score: ",
+                flows$pSecrecyScore)
+
+pal <- colorFactor(brewer.pal(4, "Set1"), flows$origins)
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolylines(data = flows, weight = ~secrecy, label = hover, 
+               group = ~origins, color = ~pal(origins)) %>%
+  addLayersControl(overlayGroups = unique(flows$origins), 
+                   options = layersControlOptions(collapsed = FALSE))
+
+parset(viz, dimensions = c('reporter', 'partner'),
+       value = htmlwidgets::JS("function(d){return d.DII}"),
+       tension = 0.5)
+```
+
+
+
+# Portfolio Investment
+
+The countries with the greatest exposure to illicit financial flows in portfolio positions are Bermuda, Luxembourg, Marshall Islands, Ireland, and Mauritius.
+```{r portinv, echo = FALSE}
+## ## ## ## ## ## ## ## ## ## ##
+# FOR PORTFOLIO INVESTMENT  ####
+## ## ## ## ## ## ## ## ## ## ##
+
+conduits <- c("Bermuda", "Luxembourg", "Marshall Islands", "Ireland", "Mauritius")
+```
+
+
+## Assets
+```{r PIA, echo = FALSE}
+# .. Assets ####
+viz <- subset(panelSJ, year == 2015,
+              select = c(reporter, partner,
+                         pSecrecyScore,
+                         PIA))
+viz <- subset(viz, reporter %in% conduits)
+viz <- subset(viz, !is.na(viz$PIA))
+viz$PIA <- viz$PIA /10^6
+
+viz <- viz %>%
+  left_join(centroids, by = c('reporter' = 'Country')) %>%
+  left_join(centroids, by = c('partner' = 'Country'))
+viz <- na.omit(viz)
+
+viz$secrecy <- (10-1)/(max(viz$pSecrecyScore)-min(viz$pSecrecyScore)) * (viz$pSecrecyScore-min(viz$pSecrecyScore)) + 1
+# Map variable onto 1-10 range
+# range(viz$secrecy)
+
+flows <- gcIntermediate(viz[,5:6], viz[,7:8], sp = TRUE, addStartEnd = TRUE)
+
+flows$counts <- viz$PIA
+flows$origins <- viz$reporter
+flows$destinations <- viz$partner
+flows$secrecy <- viz$secrecy
+flows$pSecrecyScore <- viz$pSecrecyScore
+
+hover <- paste0(flows$origins, " to ", 
+                flows$destinations, ": ",
+                "$",
+                format(round(flows$counts, 0), big.mark = ",", trim = T),
+                " million",
+                "; ",
+                flows$destinations, " secrecy score: ",
+                flows$pSecrecyScore)
+
+pal <- colorFactor(brewer.pal(4, "Dark2"), flows$origins)
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolylines(data = flows, weight = ~secrecy, label = hover, 
+               group = ~origins, color = ~pal(origins)) %>%
+  addLayersControl(overlayGroups = unique(flows$origins), 
+                   options = layersControlOptions(collapsed = FALSE))
+
+parset(viz, dimensions = c('reporter', 'partner'),
+       value = htmlwidgets::JS("function(d){return d.PIA}"),
+       tension = 0.5)
+```
+
+
+# Liabilities (derived)
+```{r PIdL, echo = FALSE}
+# .. Liabilities (derived) ####
+viz <- subset(panelSJ, year == 2015,
+              select = c(reporter, partner,
+                         pSecrecyScore,
+                         PIdL))
+viz <- subset(viz, reporter %in% conduits)
+viz <- subset(viz, !is.na(viz$PIdL))
+viz$PIdL <- viz$PIdL /10^6
+
+viz <- viz %>%
+  left_join(centroids, by = c('reporter' = 'Country')) %>%
+  left_join(centroids, by = c('partner' = 'Country'))
+viz <- na.omit(viz)
+
+viz$secrecy <- (10-1)/(max(viz$pSecrecyScore)-min(viz$pSecrecyScore)) * (viz$pSecrecyScore-min(viz$pSecrecyScore)) + 1
+# Map variable onto 1-10 range
+# range(viz$secrecy)
+
+flows <- gcIntermediate(viz[,5:6], viz[,7:8], sp = TRUE, addStartEnd = TRUE)
+
+flows$counts <- viz$PIdL
+flows$origins <- viz$reporter
+flows$destinations <- viz$partner
+flows$secrecy <- viz$secrecy
+flows$pSecrecyScore <- viz$pSecrecyScore
+
+hover <- paste0(flows$origins, " to ", 
+                flows$destinations, ": ",
+                "$",
+                format(round(flows$counts, 0), big.mark = ",", trim = T),
+                " million",
+                "; ",
+                flows$destinations, " secrecy score: ",
+                flows$pSecrecyScore)
+
+pal <- colorFactor(brewer.pal(4, "Dark2"), flows$origins)
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolylines(data = flows, weight = ~secrecy, label = hover, 
+               group = ~origins, color = ~pal(origins)) %>%
+  addLayersControl(overlayGroups = unique(flows$origins), 
+                   options = layersControlOptions(collapsed = FALSE))
+
+parset(viz, dimensions = c('reporter', 'partner'),
+       value = htmlwidgets::JS("function(d){return d.PIdL}"),
+       tension = 0.5)
+
+```
+
+
+
+# Banking Positions
+
+The countries with the greatest exposure to illicit financial flows in banking positions are Isle of Man, Luxembourg, and Macao (Special Administrative Region of China).
+```{r banking, echo = FALSE}
+## ## ## ## ## ## ## ## ## ## ##
+# FOR BANKING POSITIONS     ####
+## ## ## ## ## ## ## ## ## ## ##
+
+conduits <- c("Isle of Man", "Luxembourg", "Macao")
+```
+
+
+# Claims
+```{r Claims, echo = FALSE}
+# .. Claims ####
+viz <- subset(panelSJ, year == 2015,
+              select = c(reporter, partner,
+                         pSecrecyScore,
+                         Claims))
+viz <- subset(viz, reporter %in% conduits)
+viz <- subset(viz, !is.na(viz$Claims))
+viz$Claims <- viz$Claims /10^6
+
+viz <- viz %>%
+  left_join(centroids, by = c('reporter' = 'Country')) %>%
+  left_join(centroids, by = c('partner' = 'Country'))
+viz <- na.omit(viz)
+
+viz$secrecy <- (10-1)/(max(viz$pSecrecyScore)-min(viz$pSecrecyScore)) * (viz$pSecrecyScore-min(viz$pSecrecyScore)) + 1
+# Map variable onto 1-10 range
+# range(viz$secrecy)
+
+flows <- gcIntermediate(viz[,5:6], viz[,7:8], sp = TRUE, addStartEnd = TRUE)
+
+flows$counts <- viz$Claims
+flows$origins <- viz$reporter
+flows$destinations <- viz$partner
+flows$secrecy <- viz$secrecy
+flows$pSecrecyScore <- viz$pSecrecyScore
+
+hover <- paste0(flows$origins, " to ", 
+                flows$destinations, ": ",
+                "$",
+                format(round(flows$counts, 0), big.mark = ",", trim = T),
+                " million",
+                "; ",
+                flows$destinations, " secrecy score: ",
+                flows$pSecrecyScore)
+
+pal <- colorFactor(brewer.pal(4, "Accent"), flows$origins)
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolylines(data = flows, weight = ~secrecy, label = hover, 
+               group = ~origins, color = ~pal(origins)) %>%
+  addLayersControl(overlayGroups = unique(flows$origins), 
+                   options = layersControlOptions(collapsed = FALSE))
+
+parset(viz, dimensions = c('reporter', 'partner'),
+       value = htmlwidgets::JS("function(d){return d.Claims}"),
+       tension = 0.5)
+```
+
+
+# Liabilities
+```{r Liabilities, echo = FALSE}
+# .. Liabilities ####
+viz <- subset(panelSJ, year == 2015,
+              select = c(reporter, partner,
+                         pSecrecyScore,
+                         Liabilities))
+viz <- subset(viz, reporter %in% conduits)
+viz <- subset(viz, !is.na(viz$Liabilities))
+viz$Liabilities <- viz$Liabilities /10^6
+
+viz <- viz %>%
+  left_join(centroids, by = c('reporter' = 'Country')) %>%
+  left_join(centroids, by = c('partner' = 'Country'))
+viz <- na.omit(viz)
+
+viz$secrecy <- (10-1)/(max(viz$pSecrecyScore)-min(viz$pSecrecyScore)) * (viz$pSecrecyScore-min(viz$pSecrecyScore)) + 1
+# Map variable onto 1-10 range
+# range(viz$secrecy)
+
+flows <- gcIntermediate(viz[,5:6], viz[,7:8], sp = TRUE, addStartEnd = TRUE)
+
+flows$counts <- viz$Liabilities
+flows$origins <- viz$reporter
+flows$destinations <- viz$partner
+flows$secrecy <- viz$secrecy
+flows$pSecrecyScore <- viz$pSecrecyScore
+
+hover <- paste0(flows$origins, " to ", 
+                flows$destinations, ": ",
+                "$",
+                format(round(flows$counts, 0), big.mark = ",", trim = T),
+                " million",
+                "; ",
+                flows$destinations, " secrecy score: ",
+                flows$pSecrecyScore)
+
+pal <- colorFactor(brewer.pal(4, "Accent"), flows$origins)
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolylines(data = flows, weight = ~secrecy, label = hover, 
+               group = ~origins, color = ~pal(origins)) %>%
+  addLayersControl(overlayGroups = unique(flows$origins), 
+                   options = layersControlOptions(collapsed = FALSE))
+
+parset(viz, dimensions = c('reporter', 'partner'),
+       value = htmlwidgets::JS("function(d){return d.Liabilities}"),
+       tension = 0.5)
+```
+
