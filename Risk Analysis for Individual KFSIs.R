@@ -750,7 +750,7 @@ for (m in 1:length(measure)){
                           values = c(cols[[f]][1], cols[[f]][2])) +
         scale_y_continuous(labels = comma)
       ggsave(g,
-             file = paste0("Figures/Individual KFSIs/Jurisdiction scores/By region/", measure[m], "_", names(vars)[f], "_", region.label[r], "_", KFSI[f], ".pdf"),
+             file = paste0("Figures/Individual KFSIs/Jurisdiction scores/By region/Including conduits/", measure[m], "_", names(vars)[f], "_", region.label[r], "_", KFSI[f], ".pdf"),
              width = 6, height = 5, units = "in")
     }
   }
@@ -775,7 +775,7 @@ for (m in 1:length(measure)){
                           values = c(cols[[f]][1], cols[[f]][2])) +
         scale_y_continuous(labels = comma)
       ggsave(g,
-             file = paste0("Figures/Individual KFSIs/Jurisdiction scores/By region/", measure[m], "_", names(vars)[f], "_", region.label[r], "_No Conduits_", KFSI[f], ".pdf"),
+             file = paste0("Figures/Individual KFSIs/Jurisdiction scores/By region/Excluding conduits/", measure[m], "_", names(vars)[f], "_", region.label[r], "_No Conduits_", KFSI[f], ".pdf"),
              width = 6, height = 5, units = "in")
     }
   }
@@ -800,7 +800,7 @@ for (m in 1:length(measure)){
                           values = c(cols[[f]][1], cols[[f]][2])) +
         scale_y_continuous(labels = comma)
       ggsave(g,
-             file = paste0("Figures/Individual KFSIs/Jurisdiction scores/By income group/", measure[m], "_", names(vars)[f], "_", incomegroup.label[i], "_", KFSI[f], ".pdf"),
+             file = paste0("Figures/Individual KFSIs/Jurisdiction scores/By income group/Including conduits/", measure[m], "_", names(vars)[f], "_", incomegroup.label[i], "_", KFSI[f], ".pdf"),
              width = 6, height = 5, units = "in")
     }
   }
@@ -825,7 +825,7 @@ for (m in 1:length(measure)){
                           values = c(cols[[f]][1], cols[[f]][2])) +
         scale_y_continuous(labels = comma)
       ggsave(g,
-             file = paste0("Figures/Individual KFSIs/Jurisdiction scores/By income group/", measure[m], "_", names(vars)[f], "_", incomegroup.label[i], "_No Conduits_", KFSI[f], ".pdf"),
+             file = paste0("Figures/Individual KFSIs/Jurisdiction scores/By income group/Excluding conduits/", measure[m], "_", names(vars)[f], "_", incomegroup.label[i], "_No Conduits_", KFSI[f], ".pdf"),
              width = 6, height = 5, units = "in")
     }
   }
@@ -1115,7 +1115,7 @@ for (m in 1:length(measure)){
       theme(legend.title = element_blank()) +
       scale_x_continuous(breaks= pretty_breaks())
     ggsave(g,
-           file = paste0("Figures/Individual KFSIs/Scores over time/By region/", measure[m], "_", region.label[r], "_KFSIs", ".pdf"),
+           file = paste0("Figures/Individual KFSIs/Scores over time/For regions/", measure[m], "_", region.label[r], "_KFSIs", ".pdf"),
            width = 6, height = 5, units = "in")
   }
 }
@@ -1137,11 +1137,11 @@ for (m in 1:length(measure)){
       xlab("Year") + ylab(paste0(measure.label[m], " Score")) +
       scale_color_manual(labels = c("Banking Positions", "Direct Investment",
                                     "Portfolio Investment", "Trade"),
-                         values = wes_palette("Chevalier1")) +
+                         values = wes_palette("GrandBudapest1")) +
       theme(legend.title = element_blank()) +
       scale_x_continuous(breaks= pretty_breaks())
     ggsave(g,
-           file = paste0("Figures/Individual KFSIs/Scores over time/By region/", measure[m], "_", region.label[r], "_KFSIs", ".pdf"),
+           file = paste0("Figures/Individual KFSIs/Scores over time/For regions/", measure[m], "_", region.label[r], "_KFSIs", ".pdf"),
            width = 6, height = 5, units = "in")
   }
 }
@@ -1260,7 +1260,7 @@ for (m in 1:length(measure)){
       theme(legend.title = element_blank()) +
       scale_x_continuous(breaks= pretty_breaks())
     ggsave(g, 
-           file = paste0("Figures/Individual KFSIs/Scores over time/By income group/", measure[m], "_", incomegroup[i], "_KFSIs", ".pdf"), 
+           file = paste0("Figures/Individual KFSIs/Scores over time/For income groups/", measure[m], "_", incomegroup[i], "_KFSIs", ".pdf"), 
            width = 6, height = 5, units = "in")
   }
 }
@@ -1282,11 +1282,11 @@ for (m in 1:length(measure)){
       xlab("Year") + ylab(paste0(measure.label[m], " Score")) +
       scale_color_manual(labels = c("Banking Positions", "Direct Investment",
                                     "Portfolio Investment", "Trade"),
-                         values = wes_palette("Chevalier1")) +
+                         values = wes_palette("GrandBudapest1")) +
       theme(legend.title = element_blank()) +
       scale_x_continuous(breaks= pretty_breaks())
     ggsave(g, 
-           file = paste0("Figures/Individual KFSIs/Scores over time/By income group/", measure[m], "_", incomegroup[i], "_KFSIs", ".pdf"), 
+           file = paste0("Figures/Individual KFSIs/Scores over time/For income groups/", measure[m], "_", incomegroup[i], "_KFSIs", ".pdf"), 
            width = 6, height = 5, units = "in")
   }
 }

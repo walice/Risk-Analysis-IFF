@@ -85,6 +85,7 @@ library(rebus)
 library(reshape2)
 library(scales)
 library(tidyr)
+library(tidyverse)
 library(WDI)
 library(wesanderson)
 library(xlsx)
@@ -95,7 +96,7 @@ library(xlsx)
 # DATA PREPARATION          ####
 ## ## ## ## ## ## ## ## ## ## ##
 
-source("Scripts/Data Preparation.R")
+#source("Scripts/Data Preparation.R")
 load("Data/panel.RData")
 
 
@@ -599,7 +600,7 @@ for (m in 1:length(measure)){
                           values = c(cols[[f]][1], cols[[f]][2])) +
         scale_y_continuous(labels = comma)
       ggsave(g,
-             file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By region/", measure[m], "_", names(vars)[f], "_", region.label[r],".pdf"),
+             file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By region/Including conduits/", measure[m], "_", names(vars)[f], "_", region.label[r],".pdf"),
              width = 6, height = 5, units = "in")
     }
   }
@@ -623,7 +624,7 @@ for (m in 1:length(measure)){
                           values = c(cols[[f]][1], cols[[f]][2])) +
         scale_y_continuous(labels = comma)
       ggsave(g,
-             file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By region/", measure[m], "_", names(vars)[f], "_", region.label[r], "_No Conduits", ".pdf"),
+             file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By region/Excluding conduits/", measure[m], "_", names(vars)[f], "_", region.label[r], "_No Conduits", ".pdf"),
              width = 6, height = 5, units = "in")
     }
   }
@@ -647,7 +648,7 @@ for (m in 1:length(measure)){
                           values = c(cols[[f]][1], cols[[f]][2])) +
         scale_y_continuous(labels = comma)
       ggsave(g,
-             file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By income group/", measure[m], "_", names(vars)[f], "_", incomegroup.label[i],".pdf"),
+             file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By income group/Including conduits/", measure[m], "_", names(vars)[f], "_", incomegroup.label[i],".pdf"),
              width = 6, height = 5, units = "in")
     }
   }
@@ -671,7 +672,7 @@ for (m in 1:length(measure)){
                           values = c(cols[[f]][1], cols[[f]][2])) +
         scale_y_continuous(labels = comma)
       ggsave(g,
-             file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By income group/", measure[m], "_", names(vars)[f], "_", incomegroup.label[i], "_No Conduits",".pdf"),
+             file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By income group/Excluding conduits/", measure[m], "_", names(vars)[f], "_", incomegroup.label[i], "_No Conduits",".pdf"),
              width = 6, height = 5, units = "in")
     }
   }
@@ -707,7 +708,44 @@ names(yraverage) <- sub("^(.*)_(.*)$", "\\2\\1", names(yraverage))
 
 yraverage <- yraverage %>%
   select(rRegion, starts_with("xwr")) %>%
-  distinct(rRegion, .keep_all = TRUE) 
+  distinct(rRegion, .keep_all = TRUE)
+
+yraverage$xwrVBanking <- rowMeans(subset(yraverage,
+                                         select = c(xwrVClaims, xwrVLiabilities)),
+                                  na.rm = T)
+yraverage$xwrVDirectInv <- rowMeans(subset(yraverage,
+                                           select = c(xwrVDII, xwrVDIdO)),
+                                    na.rm = T)
+yraverage$xwrVPortInv <- rowMeans(subset(yraverage,
+                                         select = c(xwrVPIA, xwrVPIdL)),
+                                  na.rm = T)
+yraverage$xwrVTrade <- rowMeans(subset(yraverage,
+                                       select = c(xwrVExport, xwrVImport)),
+                                na.rm = T)
+yraverage$xwrIBanking <- rowMeans(subset(yraverage,
+                                         select = c(xwrIClaims, xwrILiabilities)),
+                                  na.rm = T)
+yraverage$xwrIDirectInv <- rowMeans(subset(yraverage,
+                                           select = c(xwrIDII, xwrIDIdO)),
+                                    na.rm = T)
+yraverage$xwrIPortInv <- rowMeans(subset(yraverage,
+                                         select = c(xwrIPIA, xwrIPIdL)),
+                                  na.rm = T)
+yraverage$xwrITrade <- rowMeans(subset(yraverage,
+                                       select = c(xwrIExport, xwrIImport)),
+                                na.rm = T)
+yraverage$xwrEBanking <- rowMeans(subset(yraverage,
+                                         select = c(xwrEClaims, xwrELiabilities)),
+                                  na.rm = T)
+yraverage$xwrEDirectInv <- rowMeans(subset(yraverage,
+                                           select = c(xwrEDII, xwrEDIdO)),
+                                    na.rm = T)
+yraverage$xwrEPortInv <- rowMeans(subset(yraverage,
+                                         select = c(xwrEPIA, xwrEPIdL)),
+                                  na.rm = T)
+yraverage$xwrETrade <- rowMeans(subset(yraverage,
+                                       select = c(xwrEExport, xwrEImport)),
+                                na.rm = T)
 
 yraverage <- melt(yraverage, 
                   id.vars = c("rRegion"),
@@ -722,7 +760,10 @@ yraverage <- melt(yraverage,
                                    "xwrEDIdI", "xwrEDII", "xwrEDIdO", "xwrEDIO", 
                                    "xwrEPIA", "xwrEPIL", "xwrEPIdL",
                                    "xwrEExport", "xwrEImport",
-                                   "xwrEClaims", "xwrELiabilities"))
+                                   "xwrEClaims", "xwrELiabilities",
+                                   "xwrVBanking", "xwrVDirectInv", "xwrVPortInv", "xwrVTrade",
+                                   "xwrIBanking", "xwrIDirectInv", "xwrIPortInv", "xwrITrade",
+                                   "xwrEBanking", "xwrEDirectInv", "xwrEPortInv", "xwrETrade"))
 yraverage <- subset(yraverage, !is.na(value) & !is.infinite(value))
 
 
@@ -745,6 +786,61 @@ for (m in 1:length(wrmeasure)){
            file = paste0("Figures/Overall Secrecy Score/Regional scores/", wrmeasure[m], "_", names(vars)[f],".pdf"),
            width = 6, height = 5, units = "in")
   }
+}
+
+
+# .... Plot region-level scores, all flows/stocks ####
+for (m in 1:length(wrmeasure)){
+  g <- ggplot(yraverage %>% filter((variable == paste0(wrmeasure[m], vars[[1]][1]) |
+                                      variable == paste0(wrmeasure[m], vars[[1]][2]) |
+                                      variable == paste0(wrmeasure[m], vars[[2]][1]) |
+                                      variable == paste0(wrmeasure[m], vars[[2]][2]) |
+                                      variable == paste0(wrmeasure[m], vars[[3]][1]) |
+                                      variable == paste0(wrmeasure[m], vars[[3]][2]) |
+                                      variable == paste0(wrmeasure[m], vars[[4]][1]) |
+                                      variable == paste0(wrmeasure[m], vars[[4]][2])) &
+                                     value != 0 & rRegion != "") %>%
+                distinct(rRegion, variable, .keep_all = TRUE),
+              aes(x = reorder(rRegion, value, sum), y = value, fill = variable)) +
+    geom_col() + coord_flip() +
+    ggtitle(paste0(measure.label[m], " of all flows/stocks")) +
+    xlab("Region") + ylab(paste0(measure.label[m], " Score")) +
+    guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
+    scale_fill_manual(labels = c(var.labels[[1]][1], var.labels[[1]][2],
+                                 var.labels[[2]][1], var.labels[[2]][2],
+                                 var.labels[[3]][1], var.labels[[3]][2],
+                                 var.labels[[4]][1], var.labels[[4]][2]),
+                      values = c(cols[[1]][1], cols[[1]][2],
+                                 cols[[2]][1], cols[[2]][2],
+                                 cols[[3]][1], cols[[3]][2],
+                                 cols[[4]][1], cols[[4]][2])) +
+    scale_y_continuous(labels = comma)
+  ggsave(g,
+         file = paste0("Figures/Overall Secrecy Score/Regional scores/", wrmeasure[m], "_All",".pdf"),
+         width = 6, height = 5, units = "in")
+}
+
+
+# .... Plot region-level scores, all flows/stocks, aggregated ####
+for (m in 1:length(wrmeasure)){
+  g <- ggplot(yraverage %>% filter((variable == paste0(wrmeasure[m], "Trade") |
+                                      variable == paste0(wrmeasure[m], "PortInv") |
+                                      variable == paste0(wrmeasure[m], "DirectInv") |
+                                      variable == paste0(wrmeasure[m], "Banking")) &
+                                     value != 0 & rRegion != "") %>%
+                distinct(rRegion, variable, .keep_all = TRUE),
+              aes(x = reorder(rRegion, value, sum), y = value, fill = fct_rev(variable))) +
+    geom_col() + coord_flip() +
+    ggtitle(paste0(measure.label[m], " of all flows/stocks, aggregated")) +
+    xlab("Region") + ylab(paste0(measure.label[m], " Score")) +
+    guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
+    scale_fill_manual(labels = c("Trade", "Portfolio Investment",
+                                 "Direct Investment", "Banking Positions"),
+                      values = wes_palette("GrandBudapest1"))  +
+    scale_y_continuous(labels = comma)
+  ggsave(g,
+         file = paste0("Figures/Overall Secrecy Score/Regional scores/", wrmeasure[m], "_All_Aggregated",".pdf"),
+         width = 6, height = 5, units = "in")
 }
 
 
@@ -777,7 +873,44 @@ names(yraverage) <- sub("^(.*)_(.*)$", "\\2\\1", names(yraverage))
 
 yraverage <- yraverage %>%
   select(rIncome, starts_with("xwi")) %>%
-  distinct(rIncome, .keep_all = TRUE) 
+  distinct(rIncome, .keep_all = TRUE)
+
+yraverage$xwiVBanking <- rowMeans(subset(yraverage,
+                                         select = c(xwiVClaims, xwiVLiabilities)),
+                                  na.rm = T)
+yraverage$xwiVDirectInv <- rowMeans(subset(yraverage,
+                                           select = c(xwiVDII, xwiVDIdO)),
+                                    na.rm = T)
+yraverage$xwiVPortInv <- rowMeans(subset(yraverage,
+                                         select = c(xwiVPIA, xwiVPIdL)),
+                                  na.rm = T)
+yraverage$xwiVTrade <- rowMeans(subset(yraverage,
+                                       select = c(xwiVExport, xwiVImport)),
+                                na.rm = T)
+yraverage$xwiIBanking <- rowMeans(subset(yraverage,
+                                         select = c(xwiIClaims, xwiILiabilities)),
+                                  na.rm = T)
+yraverage$xwiIDirectInv <- rowMeans(subset(yraverage,
+                                           select = c(xwiIDII, xwiIDIdO)),
+                                    na.rm = T)
+yraverage$xwiIPortInv <- rowMeans(subset(yraverage,
+                                         select = c(xwiIPIA, xwiIPIdL)),
+                                  na.rm = T)
+yraverage$xwiITrade <- rowMeans(subset(yraverage,
+                                       select = c(xwiIExport, xwiIImport)),
+                                na.rm = T)
+yraverage$xwiEBanking <- rowMeans(subset(yraverage,
+                                         select = c(xwiEClaims, xwiELiabilities)),
+                                  na.rm = T)
+yraverage$xwiEDirectInv <- rowMeans(subset(yraverage,
+                                           select = c(xwiEDII, xwiEDIdO)),
+                                    na.rm = T)
+yraverage$xwiEPortInv <- rowMeans(subset(yraverage,
+                                         select = c(xwiEPIA, xwiEPIdL)),
+                                  na.rm = T)
+yraverage$xwiETrade <- rowMeans(subset(yraverage,
+                                       select = c(xwiEExport, xwiEImport)),
+                                na.rm = T)
 
 yraverage <- melt(yraverage, 
                   id.vars = c("rIncome"),
@@ -792,7 +925,10 @@ yraverage <- melt(yraverage,
                                    "xwiEDIdI", "xwiEDII", "xwiEDIdO", "xwiEDIO", 
                                    "xwiEPIA", "xwiEPIL", "xwiEPIdL",
                                    "xwiEExport", "xwiEImport",
-                                   "xwiEClaims", "xwiELiabilities"))
+                                   "xwiEClaims", "xwiELiabilities",
+                                   "xwiVBanking", "xwiVDirectInv", "xwiVPortInv", "xwiVTrade",
+                                   "xwiIBanking", "xwiIDirectInv", "xwiIPortInv", "xwiITrade",
+                                   "xwiEBanking", "xwiEDirectInv", "xwiEPortInv", "xwiETrade"))
 yraverage <- subset(yraverage, !is.na(value) & !is.infinite(value))
 
 
@@ -815,6 +951,61 @@ for (m in 1:length(wimeasure)){
            file = paste0("Figures/Overall Secrecy Score/Income group scores/", wimeasure[m], "_", names(vars)[f],".pdf"),
            width = 6, height = 5, units = "in")
   }
+}
+
+
+# .... Plot income group-level scores, all flows/stocks ####
+for (m in 1:length(wimeasure)){
+  g <- ggplot(yraverage %>% filter((variable == paste0(wimeasure[m], vars[[1]][1]) |
+                                      variable == paste0(wimeasure[m], vars[[1]][2]) |
+                                      variable == paste0(wimeasure[m], vars[[2]][1]) |
+                                      variable == paste0(wimeasure[m], vars[[2]][2]) |
+                                      variable == paste0(wimeasure[m], vars[[3]][1]) |
+                                      variable == paste0(wimeasure[m], vars[[3]][2]) |
+                                      variable == paste0(wimeasure[m], vars[[4]][1]) |
+                                      variable == paste0(wimeasure[m], vars[[4]][2])) &
+                                     value != 0 & rIncome != "") %>%
+                distinct(rIncome, variable, .keep_all = TRUE),
+              aes(x = reorder(rIncome, value, sum), y = value, fill = variable)) +
+    geom_col() + coord_flip() +
+    ggtitle(paste0(measure.label[m], " of all flows/stocks")) +
+    xlab("Income group") + ylab(paste0(measure.label[m], " Score")) +
+    guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
+    scale_fill_manual(labels = c(var.labels[[1]][1], var.labels[[1]][2],
+                                 var.labels[[2]][1], var.labels[[2]][2],
+                                 var.labels[[3]][1], var.labels[[3]][2],
+                                 var.labels[[4]][1], var.labels[[4]][2]),
+                      values = c(cols[[1]][1], cols[[1]][2],
+                                 cols[[2]][1], cols[[2]][2],
+                                 cols[[3]][1], cols[[3]][2],
+                                 cols[[4]][1], cols[[4]][2])) +
+    scale_y_continuous(labels = comma)
+  ggsave(g,
+         file = paste0("Figures/Overall Secrecy Score/Income group scores/", wimeasure[m], "_All",".pdf"),
+         width = 6, height = 5, units = "in")
+}
+
+
+# .... Plot income group-level scores, all flows/stocks, aggregated ####
+for (m in 1:length(wimeasure)){
+  g <- ggplot(yraverage %>% filter((variable == paste0(wimeasure[m], "Trade") |
+                                      variable == paste0(wimeasure[m], "PortInv") |
+                                      variable == paste0(wimeasure[m], "DirectInv") |
+                                      variable == paste0(wimeasure[m], "Banking")) &
+                                     value != 0 & rIncome != "") %>%
+                distinct(rIncome, variable, .keep_all = TRUE),
+              aes(x = reorder(rIncome, value, sum), y = value, fill = fct_rev(variable))) +
+    geom_col() + coord_flip() +
+    ggtitle(paste0(measure.label[m], " of all flows/stocks, aggregated")) +
+    xlab("Income group") + ylab(paste0(measure.label[m], " Score")) +
+    guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
+    scale_fill_manual(labels = c("Trade", "Portfolio Investment",
+                                 "Direct Investment", "Banking Positions"),
+                      values = wes_palette("GrandBudapest1"))  +
+    scale_y_continuous(labels = comma)
+  ggsave(g,
+         file = paste0("Figures/Overall Secrecy Score/Income group scores/", wimeasure[m], "_All_Aggregated",".pdf"),
+         width = 6, height = 5, units = "in")
 }
 
 
@@ -926,11 +1117,11 @@ for (m in 1:length(measure)){
       xlab("Year") + ylab(paste0(measure.label[m], " Score")) +
       scale_color_manual(labels = c("Banking Positions","Direct Investment",
                                     "Portfolio Investment", "Trade"),
-                         values = wes_palette("Chevalier1")) +
+                         values = wes_palette("GrandBudapest1")) +
       theme(legend.title = element_blank()) +
       scale_x_continuous(breaks= pretty_breaks())
     ggsave(g,
-       file = paste0("Figures/Overall Secrecy Score/Scores over time/By region/", measure[m], "_", region.label[r],".pdf"),
+       file = paste0("Figures/Overall Secrecy Score/Scores over time/For regions/", measure[m], "_", region.label[r],".pdf"),
        width = 6, height = 5, units = "in")
   }
 }
@@ -1029,11 +1220,11 @@ for (m in 1:length(measure)){
       xlab("Year") + ylab(paste0(measure.label[m], " Score")) +
       scale_color_manual(labels = c("Banking Positions","Direct Investment",
                                     "Portfolio Investment", "Trade"),
-                         values = wes_palette("Chevalier1")) +
+                         values = wes_palette("GrandBudapest1")) +
       theme(legend.title = element_blank()) +
       scale_x_continuous(breaks= pretty_breaks())
     ggsave(g, 
-           file = paste0("Figures/Overall Secrecy Score/Scores over time/By income group/", measure[m], "_", incomegroup[i],".pdf"), 
+           file = paste0("Figures/Overall Secrecy Score/Scores over time/For income groups/", measure[m], "_", incomegroup[i],".pdf"), 
            width = 6, height = 5, units = "in")
   }
 }
