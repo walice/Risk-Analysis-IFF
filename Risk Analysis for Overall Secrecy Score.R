@@ -774,7 +774,7 @@ for (m in 1:length(measure)){
 
 # .... By income group, including conduits, all flows/stocks, aggregated ####
 for (m in 1:length(measure)){
-  for (r in 1:length(incomegroup)){
+  for (i in 1:length(incomegroup)){
     g <- ggplot(get(incomegroup[i]) %>% filter((variable == paste0(measure[m], "Trade") |
                                                   variable == paste0(measure[m], "PortInv") |
                                                   variable == paste0(measure[m], "DirectInv") |
