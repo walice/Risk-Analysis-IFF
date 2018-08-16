@@ -7,6 +7,7 @@
 # Preamble
 # Data Preparation
 # VIE for Individual KFSIs
+# .. Average Company Ownership KFSIs
 # .. Jurisdiction-level scores
 # .... Calculate Total of flow/stock per reporter per year
 # .... Calculate Vulnerabilities per reporter per year
@@ -47,9 +48,15 @@
 # .. Housekeeping
 # Time Series Graphs
 # .. For regions
+# .... Calculate average V for each measure in each year
+# .... Calculate average I for each measure in each year
+# .... Calculate average E for each measure in each year
 # .... Plot
 # .... Export
 # .. For income groups
+# .... Calculate average V for each measure in each year
+# .... Calculate average I for each measure in each year
+# .... Calculate average E for each measure in each year
 # .... Plot
 # .... Export
 # .. Housekeeping
@@ -93,13 +100,13 @@ load("Data/panel.RData")
 
 panelSJ_KFSI <- subset(panel, pSS != FALSE)
 
-vars <- c("DIdI", "DII", "DIdO", "DIO",
+vars <- c("Claims", "Liabilities",
+          "DIdI", "DII", "DIdO", "DIO",
           "PIA", "PIL", "PIdL",
-          "Export", "Import",
-          "Claims", "Liabilities")
+          "Export", "Import")
 
 
-# .. Average Company Ownership KFSIs
+# .. Average Company Ownership KFSIs ####
 panelSJ_KFSI$pKFSI3.6 <- rowMeans(subset(panelSJ_KFSI,
                                          select = c(pKFSI3, pKFSI6)),
                                   na.rm = T)
@@ -295,37 +302,25 @@ summary(panelSJ_KFSI)
 
 # .... For Totals ####
 grep("Tot", names(panelSJ_KFSI))
-for (c in 11:19){
+for (c in 11:21){
   z <- which(panelSJ_KFSI[, c+62] == 0) # increment is -40 if panel w/o KFSIs
   zeroTot <- panelSJ_KFSI[z, ]
   print(unique(zeroTot[, c]))
 }
-zeroTot <- subset(panelSJ_KFSI, TotClaims == 0)
-unique(zeroTot$Claims)
-zeroTot <- subset(panelSJ_KFSI, TotLiabilities == 0)
-unique(zeroTot$Liabilities)
 
 grep("wrTot", names(panelSJ_KFSI))
-for (c in 11:19){
+for (c in 11:21){
   z <- which(panelSJ_KFSI[, c+103] == 0)
   zeroTot <- panelSJ_KFSI[z, ]
   print(unique(zeroTot[, c]))
 }
-zeroTot <- subset(panelSJ_KFSI, wrTotClaims == 0)
-unique(zeroTot$Claims)
-zeroTot <- subset(panelSJ_KFSI, wrTotLiabilities == 0)
-unique(zeroTot$Liabilities)
 
 grep("wiTot", names(panelSJ_KFSI))
-for (c in 11:19){
+for (c in 11:21){
   z <- which(panelSJ_KFSI[, c+145] == 0)
   zeroTot <- panelSJ_KFSI[z, ]
   print(unique(zeroTot[, c]))
 }
-zeroTot <- subset(panelSJ_KFSI, wiTotClaims == 0)
-unique(zeroTot$Claims)
-zeroTot <- subset(panelSJ_KFSI, wiTotLiabilities == 0)
-unique(zeroTot$Liabilities)
 
 # All the 0 values in the totals for flows/stocks are due to summing only NAs with na.rm = T.
 # We can convert them back to NAs.
@@ -716,13 +711,13 @@ for (m in 1:length(measure)){
                                        variable == paste0(measure[m], vars[[f]][2])) &
                                       value != 0) %>%
                   distinct(reporter, variable, .keep_all = TRUE),
-                aes(x = reorder(reporter, value, sum), y = value, fill = variable)) +
+                aes(x = reorder(reporter, value, sum), y = value, fill = fct_rev(variable))) +
       geom_col() + coord_flip() +
       ggtitle(paste0(measure.label[m], " of ", flowstock[f], " in Conduits"),
               subtitle = paste0(KFSI[f],": ", KFSI.label[f])) +
       xlab("Reporting country") + ylab(paste0(measure.label[m], " Score")) +
       guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
-      scale_fill_manual(labels = c(var.labels[[f]][1], var.labels[[f]][2]),
+      scale_fill_manual(labels = rev(c(var.labels[[f]][1], var.labels[[f]][2])),
                         values = c(cols[[f]][1], cols[[f]][2])) +
       scale_y_continuous(labels = comma)
     ggsave(g,
@@ -740,13 +735,13 @@ for (m in 1:length(measure)){
                                                variable == paste0(measure[m], vars[[f]][2])) &
                                               value != 0) %>%
                     distinct(reporter, variable, .keep_all = TRUE),
-                  aes(x = reorder(reporter, value, sum), y = value, fill = variable)) +
+                  aes(x = reorder(reporter, value, sum), y = value, fill = fct_rev(variable))) +
         geom_col() + coord_flip() +
         ggtitle(paste0(measure.label[m], " of ", flowstock[f], " in ", region.label[r]),
                 subtitle = paste0(KFSI[f],": ", KFSI.label[f])) +
         xlab("Reporting country") + ylab(paste0(measure.label[m], " Score")) +
         guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
-        scale_fill_manual(labels = c(var.labels[[f]][1], var.labels[[f]][2]),
+        scale_fill_manual(labels = rev(c(var.labels[[f]][1], var.labels[[f]][2])),
                           values = c(cols[[f]][1], cols[[f]][2])) +
         scale_y_continuous(labels = comma)
       ggsave(g,
@@ -765,13 +760,13 @@ for (m in 1:length(measure)){
                                                  variable == paste0(measure[m], vars[[f]][2])) &
                                                 value != 0) %>%
                     distinct(reporter, variable, .keep_all = TRUE),
-                  aes(x = reorder(reporter, value, sum), y = value, fill = variable)) +
+                  aes(x = reorder(reporter, value, sum), y = value, fill = fct_rev(variable))) +
         geom_col() + coord_flip() +
         ggtitle(paste0(measure.label[m], " of ", flowstock[f], " in ", region.label[r]),
                 subtitle = paste0(KFSI[f],": ", KFSI.label[f])) +
         xlab("Reporting country") + ylab(paste0(measure.label[m], " Score")) +
         guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
-        scale_fill_manual(labels = c(var.labels[[f]][1], var.labels[[f]][2]),
+        scale_fill_manual(labels = rev(c(var.labels[[f]][1], var.labels[[f]][2])),
                           values = c(cols[[f]][1], cols[[f]][2])) +
         scale_y_continuous(labels = comma)
       ggsave(g,
@@ -790,13 +785,13 @@ for (m in 1:length(measure)){
                                                     variable == paste0(measure[m], vars[[f]][2])) &
                                                    value != 0) %>%
                     distinct(reporter, variable, .keep_all = TRUE),
-                  aes(x = reorder(reporter, value, sum), y = value, fill = variable)) +
+                  aes(x = reorder(reporter, value, sum), y = value, fill = fct_rev(variable))) +
         geom_col() + coord_flip() +
         ggtitle(paste0(measure.label[m], " of ", flowstock[f], " in ", incomegroup.label[i]),
                 subtitle = paste0(KFSI[f],": ", KFSI.label[f])) +
         xlab("Reporting country") + ylab(paste0(measure.label[m], " Score")) +
         guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
-        scale_fill_manual(labels = c(var.labels[[f]][1], var.labels[[f]][2]),
+        scale_fill_manual(labels = rev(c(var.labels[[f]][1], var.labels[[f]][2])),
                           values = c(cols[[f]][1], cols[[f]][2])) +
         scale_y_continuous(labels = comma)
       ggsave(g,
@@ -815,13 +810,13 @@ for (m in 1:length(measure)){
                                                       variable == paste0(measure[m], vars[[f]][2])) &
                                                      value != 0) %>%
                     distinct(reporter, variable, .keep_all = TRUE),
-                  aes(x = reorder(reporter, value, sum), y = value, fill = variable)) +
+                  aes(x = reorder(reporter, value, sum), y = value, fill = fct_rev(variable))) +
         geom_col() + coord_flip() +
         ggtitle(paste0(measure.label[m], " of ", flowstock[f], " in ", incomegroup.label[i]),
                 subtitle = paste0(KFSI[f],": ", KFSI.label[f])) +
         xlab("Reporting country") + ylab(paste0(measure.label[m], " Score")) +
         guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
-        scale_fill_manual(labels = c(var.labels[[f]][1], var.labels[[f]][2]),
+        scale_fill_manual(labels = rev(c(var.labels[[f]][1], var.labels[[f]][2])),
                           values = c(cols[[f]][1], cols[[f]][2])) +
         scale_y_continuous(labels = comma)
       ggsave(g,
@@ -893,13 +888,13 @@ for (m in 1:length(wrmeasure)){
                                         variable == paste0(wrmeasure[m], vars[[f]][2])) &
                                        value != 0 & rRegion != "") %>%
                   distinct(rRegion, variable, .keep_all = TRUE),
-                aes(x = reorder(rRegion, value, sum), y = value, fill = variable)) +
+                aes(x = reorder(rRegion, value, sum), y = value, fill = fct_rev(variable))) +
       geom_col() + coord_flip() +
       ggtitle(paste0(measure.label[m], " of ", flowstock[f]),
               subtitle = paste0(KFSI[f],": ", KFSI.label[f])) +
       xlab("Region") + ylab(paste0(measure.label[m], " Score")) +
       guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
-      scale_fill_manual(labels = c(var.labels[[f]][1], var.labels[[f]][2]),
+      scale_fill_manual(labels = rev(c(var.labels[[f]][1], var.labels[[f]][2])),
                         values = c(cols[[f]][1], cols[[f]][2])) +
       scale_y_continuous(labels = comma)
     ggsave(g,
@@ -970,13 +965,13 @@ for (m in 1:length(wimeasure)){
                                         variable == paste0(wimeasure[m], vars[[f]][2])) &
                                        value != 0 & rIncome != "") %>%
                   distinct(rIncome, variable, .keep_all = TRUE),
-                aes(x = reorder(rIncome, value, sum), y = value, fill = variable)) +
+                aes(x = reorder(rIncome, value, sum), y = value, fill = fct_rev(variable))) +
       geom_col() + coord_flip() +
       ggtitle(paste0(measure.label[m], " of ", flowstock[f]),
               subtitle = paste0(KFSI[f],": ", KFSI.label[f])) +
       xlab("Income group") + ylab(paste0(measure.label[m], " Score")) +
       guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
-      scale_fill_manual(labels = c(var.labels[[f]][1], var.labels[[f]][2]),
+      scale_fill_manual(labels = rev(c(var.labels[[f]][1], var.labels[[f]][2])),
                         values = c(cols[[f]][1], cols[[f]][2])) +
       scale_y_continuous(labels = comma)
     ggsave(g,
@@ -1137,7 +1132,7 @@ for (m in 1:length(measure)){
       xlab("Year") + ylab(paste0(measure.label[m], " Score")) +
       scale_color_manual(labels = c("Banking Positions", "Direct Investment",
                                     "Portfolio Investment", "Trade"),
-                         values = wes_palette("GrandBudapest1")) +
+                         values = rev(wes_palette("GrandBudapest1"))) +
       theme(legend.title = element_blank()) +
       scale_x_continuous(breaks= pretty_breaks())
     ggsave(g,
@@ -1282,7 +1277,7 @@ for (m in 1:length(measure)){
       xlab("Year") + ylab(paste0(measure.label[m], " Score")) +
       scale_color_manual(labels = c("Banking Positions", "Direct Investment",
                                     "Portfolio Investment", "Trade"),
-                         values = wes_palette("GrandBudapest1")) +
+                         values = rev(wes_palette("GrandBudapest1"))) +
       theme(legend.title = element_blank()) +
       scale_x_continuous(breaks= pretty_breaks())
     ggsave(g, 

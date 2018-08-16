@@ -434,8 +434,8 @@ panel <- panel %>%
 
 
 # .. Complete cases ####
-allFSmissing <- which(rowSums(is.na(select(panel, DIdI:Liabilities))) == 
-                        ncol(select(panel, DIdI:Liabilities)))
+allFSmissing <- which(rowSums(is.na(select(panel, Claims:ReImport))) == 
+                        ncol(select(panel, Claims:ReImport)))
 panel <- panel[-c(allFSmissing),]
 rm(allFSmissing)
 
