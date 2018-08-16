@@ -529,6 +529,8 @@ colnames(yraverage)[colnames(yraverage) == "95%"] <- "c95"
 colnames(yraverage)[colnames(yraverage) == "99%"] <- "c99"
 
 conduits <- subset(yraverage, value > eval(as.name(paste(choose.cut))))
+conduits <- conduits[order(conduits$variable, conduits$reporter), ]
+write.csv(conduits, "Results/VIE conduits_Secrecy Score.csv", row.names = FALSE)
 
 af <- subset(yraverage, rRegion == "Africa")
 am <- subset(yraverage, rRegion == "Americas")
