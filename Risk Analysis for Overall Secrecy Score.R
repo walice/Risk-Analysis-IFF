@@ -33,9 +33,12 @@
 # .. Extract conduits
 # .. Plot jurisdiction-level scores
 # .... For conduits
+# .... By region, excluding conduits
 # .... By region, including conduits
-# .... By income group, including conduits
+# .... By region, including conduits, all flows/stocks
+# .... By region, including conduits, all flows/stocks, aggregated
 # .... By income group, excluding conduits
+# .... By income group, including conduits
 # .... Export
 # .. Calculate average measures across years per region
 # .... Plot region-level scores
@@ -449,7 +452,44 @@ names(yraverage) <- sub("^(.*)_(.*)$", "\\2\\1", names(yraverage))
 
 yraverage <- yraverage %>%
   select(reporter, rRegion, rIncome, starts_with("x")) %>%
-  distinct(reporter, .keep_all = TRUE) 
+  distinct(reporter, .keep_all = TRUE)
+
+yraverage$xVBanking <- rowMeans(subset(yraverage,
+                                       select = c(xVClaims, xVLiabilities)),
+                                na.rm = T)
+yraverage$xVDirectInv <- rowMeans(subset(yraverage,
+                                         select = c(xVDII, xVDIdO)),
+                                  na.rm = T)
+yraverage$xVPortInv <- rowMeans(subset(yraverage,
+                                       select = c(xVPIA, xVPIdL)),
+                                na.rm = T)
+yraverage$xVTrade <- rowMeans(subset(yraverage,
+                                     select = c(xVExport, xVImport)),
+                              na.rm = T)
+yraverage$xIBanking <- rowMeans(subset(yraverage,
+                                       select = c(xIClaims, xILiabilities)),
+                                na.rm = T)
+yraverage$xIDirectInv <- rowMeans(subset(yraverage,
+                                         select = c(xIDII, xIDIdO)),
+                                  na.rm = T)
+yraverage$xIPortInv <- rowMeans(subset(yraverage,
+                                       select = c(xIPIA, xIPIdL)),
+                                na.rm = T)
+yraverage$xITrade <- rowMeans(subset(yraverage,
+                                     select = c(xIExport, xIImport)),
+                              na.rm = T)
+yraverage$xEBanking <- rowMeans(subset(yraverage,
+                                       select = c(xEClaims, xELiabilities)),
+                                na.rm = T)
+yraverage$xEDirectInv <- rowMeans(subset(yraverage,
+                                         select = c(xEDII, xEDIdO)),
+                                  na.rm = T)
+yraverage$xEPortInv <- rowMeans(subset(yraverage,
+                                       select = c(xEPIA, xEPIdL)),
+                                na.rm = T)
+yraverage$xETrade <- rowMeans(subset(yraverage,
+                                     select = c(xEExport, xEImport)),
+                              na.rm = T)
 
 
 # .. Extract conduits ####
@@ -472,7 +512,10 @@ yraverage <- melt(yraverage,
                                    "xEClaims", "xELiabilities",
                                    "xEDIdI", "xEDII", "xEDIdO", "xEDIO", 
                                    "xEPIA", "xEPIL", "xEPIdL",
-                                   "xEExport", "xEImport"))
+                                   "xEExport", "xEImport",
+                                   "xVBanking", "xVDirectInv", "xVPortInv", "xVTrade",
+                                   "xIBanking", "xIDirectInv", "xIPortInv", "xITrade",
+                                   "xEBanking", "xEDirectInv", "xEPortInv", "xETrade"))
 yraverage <- subset(yraverage, !is.na(value) & !is.infinite(value))
 
 yraverage <- merge(yraverage, pctiles,
@@ -538,6 +581,30 @@ for (m in 1:length(measure)){
 }
 
 
+# .... By region, excluding conduits ####
+for (m in 1:length(measure)){
+  for (r in 1:length(regionno)){
+    for (f in 1:length(flowstock)){
+      g <- ggplot(get(regionno[r]) %>% filter((variable == paste0(measure[m], vars[[f]][1]) |
+                                                 variable == paste0(measure[m], vars[[f]][2])) &
+                                                value != 0) %>%
+                    distinct(reporter, variable, .keep_all = TRUE),
+                  aes(x = reorder(reporter, value, sum), y = value, fill = fct_rev(variable))) +
+        geom_col() + coord_flip() +
+        ggtitle(paste0(measure.label[m], " of ", flowstock[f], " in ", region.label[r])) +
+        xlab("Reporting country") + ylab(paste0(measure.label[m], " Score")) +
+        guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
+        scale_fill_manual(labels = rev(c(var.labels[[f]][1], var.labels[[f]][2])),
+                          values = c(cols[[f]][1], cols[[f]][2])) +
+        scale_y_continuous(labels = comma)
+      ggsave(g,
+             file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By region/Excluding conduits/", measure[m], "_", names(vars)[f], "_", region.label[r], "_No Conduits", ".pdf"),
+             width = 6, height = 5, units = "in")
+    }
+  }
+}
+
+
 # .... By region, including conduits ####
 for (m in 1:length(measure)){
   for (r in 1:length(region)){
@@ -562,24 +629,83 @@ for (m in 1:length(measure)){
 }
 
 
-# .... By region, excluding conduits ####
+# .... By region, including conduits, all flows/stocks ####
 for (m in 1:length(measure)){
-  for (r in 1:length(regionno)){
+  for (r in 1:length(region)){
+    g <- ggplot(get(region[r]) %>% filter((variable == paste0(measure[m], vars[[1]][1]) |
+                                             variable == paste0(measure[m], vars[[1]][2]) |
+                                             variable == paste0(measure[m], vars[[2]][1]) |
+                                             variable == paste0(measure[m], vars[[2]][2]) |
+                                             variable == paste0(measure[m], vars[[3]][1]) |
+                                             variable == paste0(measure[m], vars[[3]][2]) |
+                                             variable == paste0(measure[m], vars[[4]][1]) |
+                                             variable == paste0(measure[m], vars[[4]][2])) &
+                                            value != 0) %>%
+                  distinct(reporter, variable, .keep_all = TRUE),
+                aes(x = reorder(reporter, value, sum), y = value, fill = fct_rev(variable))) +
+      geom_col() + coord_flip() +
+      ggtitle(paste0(measure.label[m], " of all flows/stocks in ", region.label[r])) +
+      xlab("Reporting country") + ylab(paste0(measure.label[m], " Score")) +
+      guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
+      scale_fill_manual(labels = rev(c(var.labels[[1]][1], var.labels[[1]][2],
+                                       var.labels[[2]][1], var.labels[[2]][2],
+                                       var.labels[[3]][1], var.labels[[3]][2],
+                                       var.labels[[4]][1], var.labels[[4]][2])),
+                        values = rev(c(cols[[1]][2], cols[[1]][1],
+                                   cols[[2]][2], cols[[2]][1],
+                                   cols[[3]][2], cols[[3]][1],
+                                   cols[[4]][2], cols[[4]][1]))) +
+      scale_y_continuous(labels = comma)
+    ggsave(g,
+           file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By region/Aggregates/", measure[m], "_All_", region.label[r], ".pdf"),
+           width = 6, height = 5, units = "in")
+  }
+}
+
+
+# .... By region, including conduits, all flows/stocks, aggregated ####
+for (m in 1:length(measure)){
+  for (r in 1:length(region)){
+    g <- ggplot(get(region[r]) %>% filter((variable == paste0(measure[m], "Trade") |
+                                             variable == paste0(measure[m], "PortInv") |
+                                             variable == paste0(measure[m], "DirectInv") |
+                                             variable == paste0(measure[m], "Banking")) &
+                                            value != 0) %>%
+                  distinct(reporter, variable, .keep_all = TRUE),
+                aes(x = reorder(reporter, value, sum), y = value, fill = fct_rev(variable))) +
+      geom_col() + coord_flip() +
+      ggtitle(paste0(measure.label[m], " of all flows/stocks in ", region.label[r])) +
+      xlab("Reporting country") + ylab(paste0(measure.label[m], " Score")) +
+      guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
+      scale_fill_manual(labels = c("Trade", "Portfolio Investment",
+                                   "Direct Investment", "Banking Positions"),
+                        values = wes_palette("GrandBudapest1")) +
+      scale_y_continuous(labels = comma)
+    ggsave(g,
+           file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By region/Aggregates/", measure[m], "_All_Aggregated_", region.label[r], ".pdf"),
+           width = 6, height = 5, units = "in")
+  }
+}
+
+
+# .... By income group, excluding conduits ####
+for (m in 1:length(measure)){
+  for (i in 1:length(incomegroupno)){
     for (f in 1:length(flowstock)){
-      g <- ggplot(get(regionno[r]) %>% filter((variable == paste0(measure[m], vars[[f]][1]) |
-                                               variable == paste0(measure[m], vars[[f]][2])) &
-                                              value != 0) %>%
+      g <- ggplot(get(incomegroupno[i]) %>% filter((variable == paste0(measure[m], vars[[f]][1]) |
+                                                      variable == paste0(measure[m], vars[[f]][2])) &
+                                                     value != 0) %>%
                     distinct(reporter, variable, .keep_all = TRUE),
                   aes(x = reorder(reporter, value, sum), y = value, fill = fct_rev(variable))) +
         geom_col() + coord_flip() +
-        ggtitle(paste0(measure.label[m], " of ", flowstock[f], " in ", region.label[r])) +
+        ggtitle(paste0(measure.label[m], " of ", flowstock[f], " in ", incomegroup.label[i])) +
         xlab("Reporting country") + ylab(paste0(measure.label[m], " Score")) +
         guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
         scale_fill_manual(labels = rev(c(var.labels[[f]][1], var.labels[[f]][2])),
                           values = c(cols[[f]][1], cols[[f]][2])) +
         scale_y_continuous(labels = comma)
       ggsave(g,
-             file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By region/Excluding conduits/", measure[m], "_", names(vars)[f], "_", region.label[r], "_No Conduits", ".pdf"),
+             file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By income group/Excluding conduits/", measure[m], "_", names(vars)[f], "_", incomegroup.label[i], "_No Conduits",".pdf"),
              width = 6, height = 5, units = "in")
     }
   }
@@ -610,26 +736,61 @@ for (m in 1:length(measure)){
 }
 
 
-# .... By income group, excluding conduits ####
+# .... By income group, including conduits, all flows/stocks ####
 for (m in 1:length(measure)){
-  for (i in 1:length(incomegroupno)){
-    for (f in 1:length(flowstock)){
-      g <- ggplot(get(incomegroupno[i]) %>% filter((variable == paste0(measure[m], vars[[f]][1]) |
-                                                    variable == paste0(measure[m], vars[[f]][2])) &
-                                                   value != 0) %>%
-                    distinct(reporter, variable, .keep_all = TRUE),
-                  aes(x = reorder(reporter, value, sum), y = value, fill = fct_rev(variable))) +
-        geom_col() + coord_flip() +
-        ggtitle(paste0(measure.label[m], " of ", flowstock[f], " in ", incomegroup.label[i])) +
-        xlab("Reporting country") + ylab(paste0(measure.label[m], " Score")) +
-        guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
-        scale_fill_manual(labels = rev(c(var.labels[[f]][1], var.labels[[f]][2])),
-                          values = c(cols[[f]][1], cols[[f]][2])) +
-        scale_y_continuous(labels = comma)
-      ggsave(g,
-             file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By income group/Excluding conduits/", measure[m], "_", names(vars)[f], "_", incomegroup.label[i], "_No Conduits",".pdf"),
-             width = 6, height = 5, units = "in")
-    }
+  for (i in 1:length(incomegroup)){
+    g <- ggplot(get(incomegroup[i]) %>% filter((variable == paste0(measure[m], vars[[1]][1]) |
+                                                  variable == paste0(measure[m], vars[[1]][2]) |
+                                                  variable == paste0(measure[m], vars[[2]][1]) |
+                                                  variable == paste0(measure[m], vars[[2]][2]) |
+                                                  variable == paste0(measure[m], vars[[3]][1]) |
+                                                  variable == paste0(measure[m], vars[[3]][2]) |
+                                                  variable == paste0(measure[m], vars[[4]][1]) |
+                                                  variable == paste0(measure[m], vars[[4]][2])) &
+                                                 value != 0) %>%
+                  distinct(reporter, variable, .keep_all = TRUE),
+                aes(x = reorder(reporter, value, sum), y = value, fill = fct_rev(variable))) +
+      geom_col() + coord_flip() +
+      ggtitle(paste0(measure.label[m], " of all flows/stocks in ", incomegroup.label[i])) +
+      xlab("Reporting country") + ylab(paste0(measure.label[m], " Score")) +
+      guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
+      scale_fill_manual(labels = rev(c(var.labels[[1]][1], var.labels[[1]][2],
+                                       var.labels[[2]][1], var.labels[[2]][2],
+                                       var.labels[[3]][1], var.labels[[3]][2],
+                                       var.labels[[4]][1], var.labels[[4]][2])),
+                        values = rev(c(cols[[1]][2], cols[[1]][1],
+                                       cols[[2]][2], cols[[2]][1],
+                                       cols[[3]][2], cols[[3]][1],
+                                       cols[[4]][2], cols[[4]][1]))) +
+      scale_y_continuous(labels = comma)
+    ggsave(g,
+           file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By income group/Aggregates/", measure[m], "_All_", incomegroup.label[i], ".pdf"),
+           width = 6, height = 5, units = "in")
+  }
+}
+
+
+# .... By income group, including conduits, all flows/stocks, aggregated ####
+for (m in 1:length(measure)){
+  for (r in 1:length(incomegroup)){
+    g <- ggplot(get(incomegroup[i]) %>% filter((variable == paste0(measure[m], "Trade") |
+                                                  variable == paste0(measure[m], "PortInv") |
+                                                  variable == paste0(measure[m], "DirectInv") |
+                                                  variable == paste0(measure[m], "Banking")) &
+                                                 value != 0) %>%
+                  distinct(reporter, variable, .keep_all = TRUE),
+                aes(x = reorder(reporter, value, sum), y = value, fill = fct_rev(variable))) +
+      geom_col() + coord_flip() +
+      ggtitle(paste0(measure.label[m], " of all flows/stocks in ", incomegroup.label[i])) +
+      xlab("Reporting country") + ylab(paste0(measure.label[m], " Score")) +
+      guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
+      scale_fill_manual(labels = c("Trade", "Portfolio Investment",
+                                   "Direct Investment", "Banking Positions"),
+                        values = wes_palette("GrandBudapest1")) +
+      scale_y_continuous(labels = comma)
+    ggsave(g,
+           file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By income group/Aggregates/", measure[m], "_All_Aggregated_", incomegroup.label[i], ".pdf"),
+           width = 6, height = 5, units = "in")
   }
 }
 
