@@ -68,8 +68,8 @@
 # PREAMBLE                  ####
 ## ## ## ## ## ## ## ## ## ## ##
 
-setwd("C:/cloudstorage/googledrive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/") # Alice work
-#setwd("D:/Google Drive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/") # Alice laptop
+#setwd("C:/cloudstorage/googledrive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/") # Alice work
+setwd("D:/Google Drive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/") # Alice laptop
 library(plyr) # Must load before dplyr
 library(dplyr)
 library(ggplot2)
@@ -128,7 +128,7 @@ I <- paste0("I", KFSIn, KFSIv)
 panelSJ_KFSI <- panelSJ_KFSI %>%
   group_by(reporter.ISO, year) %>%
   mutate_at(.vars = vars,
-            .fun = funs(Tot = sum(., na.rm = T))) %>%
+            .fun = funs(Tot = sum(abs(.), na.rm = T))) %>%
   ungroup()
 names(panelSJ_KFSI) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ_KFSI))
 
@@ -137,13 +137,13 @@ names(panelSJ_KFSI) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ_KFSI))
 panelSJ_KFSI <- panelSJ_KFSI %>%
   group_by(reporter.ISO, year) %>%
   mutate_at(.vars = c("Claims", "Liabilities"),
-            .fun = funs(V1 = sum((. * pKFSI1)/sum(., na.rm = T), na.rm = T),
-                        V18 = sum((. * pKFSI18)/sum(., na.rm = T), na.rm = T))) %>%
+            .fun = funs(V1 = sum((abs(.) * pKFSI1)/sum(abs(.), na.rm = T), na.rm = T),
+                        V18 = sum((abs(.) * pKFSI18)/sum(abs(.), na.rm = T), na.rm = T))) %>%
   ungroup()
 panelSJ_KFSI <- panelSJ_KFSI %>%
   group_by(reporter.ISO, year) %>%
   mutate_at(.vars = c("Export", "Import", "PIA", "PIdL", "DII", "DIdO"),
-            .fun = funs(V3.6 = sum((. * pKFSI1)/sum(., na.rm = T), na.rm = T))) %>%
+            .fun = funs(V3.6 = sum((abs(.) * pKFSI1)/sum(abs(.), na.rm = T), na.rm = T))) %>%
   ungroup()
 names(panelSJ_KFSI) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ_KFSI))
 
@@ -183,7 +183,7 @@ wrI <- paste0("wrI", KFSIn, KFSIv)
 panelSJ_KFSI <- panelSJ_KFSI %>%
   group_by(rRegion, year) %>%
   mutate_at(.vars = vars,
-            .fun = funs(wrTot = sum(., na.rm = T))) %>%
+            .fun = funs(wrTot = sum(abs(.), na.rm = T))) %>%
   ungroup()
 names(panelSJ_KFSI) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ_KFSI))
 
@@ -192,13 +192,13 @@ names(panelSJ_KFSI) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ_KFSI))
 panelSJ_KFSI <- panelSJ_KFSI %>%
   group_by(rRegion, year) %>%
   mutate_at(.vars = c("Claims", "Liabilities"),
-            .fun = funs(wrV1 = sum((. * pKFSI1)/sum(., na.rm = T), na.rm = T),
-                        wrV18 = sum((. * pKFSI18)/sum(., na.rm = T), na.rm = T))) %>%
+            .fun = funs(wrV1 = sum((abs(.) * pKFSI1)/sum(abs(.), na.rm = T), na.rm = T),
+                        wrV18 = sum((abs(.) * pKFSI18)/sum(abs(.), na.rm = T), na.rm = T))) %>%
   ungroup()
 panelSJ_KFSI <- panelSJ_KFSI %>%
   group_by(rRegion, year) %>%
   mutate_at(.vars = c("Export", "Import", "PIA", "PIdL", "DII", "DIdO"),
-            .fun = funs(wrV3.6 = sum((. * pKFSI1)/sum(., na.rm = T), na.rm = T))) %>%
+            .fun = funs(wrV3.6 = sum((abs(.) * pKFSI1)/sum(abs(.), na.rm = T), na.rm = T))) %>%
   ungroup()
 names(panelSJ_KFSI) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ_KFSI))
 
@@ -206,8 +206,10 @@ names(panelSJ_KFSI) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ_KFSI))
 # .... Calculate Intensities per region per year ####
 panelSJ_KFSI <- panelSJ_KFSI %>%
   group_by(rRegion, year) %>%
-  mutate(wrrGDP = sum(rGDP, na.rm = T)) %>%
-  ungroup()
+  do({
+    sum_value = sum(distinct(., reporter, year, rGDP)$rGDP, na.rm = TRUE);
+    mutate(., wrrGDP = sum_value)
+  })
 
 panelSJ_KFSI <- panelSJ_KFSI %>%
   group_by(rRegion, year) %>%
@@ -243,7 +245,7 @@ wiI <- paste0("wiI", KFSIn, KFSIv)
 panelSJ_KFSI <- panelSJ_KFSI %>%
   group_by(rIncome, year) %>%
   mutate_at(.vars = vars,
-            .fun = funs(wiTot = sum(., na.rm = T))) %>%
+            .fun = funs(wiTot = sum(abs(.), na.rm = T))) %>%
   ungroup()
 names(panelSJ_KFSI) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ_KFSI))
 
@@ -252,13 +254,13 @@ names(panelSJ_KFSI) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ_KFSI))
 panelSJ_KFSI <- panelSJ_KFSI %>%
   group_by(rIncome, year) %>%
   mutate_at(.vars = c("Claims", "Liabilities"),
-            .fun = funs(wiV1 = sum((. * pKFSI1)/sum(., na.rm = T), na.rm = T),
-                        wiV18 = sum((. * pKFSI18)/sum(., na.rm = T), na.rm = T))) %>%
+            .fun = funs(wiV1 = sum((abs(.) * pKFSI1)/sum(abs(.), na.rm = T), na.rm = T),
+                        wiV18 = sum((abs(.) * pKFSI18)/sum(abs(.), na.rm = T), na.rm = T))) %>%
   ungroup()
 panelSJ_KFSI <- panelSJ_KFSI %>%
   group_by(rIncome, year) %>%
   mutate_at(.vars = c("Export", "Import", "PIA", "PIdL", "DII", "DIdO"),
-            .fun = funs(wiV3.6 = sum((. * pKFSI1)/sum(., na.rm = T), na.rm = T))) %>%
+            .fun = funs(wiV3.6 = sum((abs(.) * pKFSI1)/sum(abs(.), na.rm = T), na.rm = T))) %>%
   ungroup()
 names(panelSJ_KFSI) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ_KFSI))
 
@@ -266,8 +268,10 @@ names(panelSJ_KFSI) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ_KFSI))
 # .... Calculate Intensities per income group per year ####
 panelSJ_KFSI <- panelSJ_KFSI %>%
   group_by(rIncome, year) %>%
-  mutate(wirGDP = sum(rGDP, na.rm = T)) %>%
-  ungroup()
+  do({
+    sum_value = sum(distinct(., reporter, year, rGDP)$rGDP, na.rm = TRUE);
+    mutate(., wirGDP = sum_value)
+  })
 
 panelSJ_KFSI <- panelSJ_KFSI %>%
   group_by(rIncome, year) %>%
@@ -298,7 +302,8 @@ rm(panel)
 
 
 # .. Check zero values in measures due to summing over NAs ####
-summary(panelSJ_KFSI)
+summary(panelSJ_KFSI[,73:197])
+
 
 # .... For Totals ####
 grep("Tot", names(panelSJ_KFSI))
