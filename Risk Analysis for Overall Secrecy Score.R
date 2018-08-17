@@ -80,8 +80,8 @@
 # PREAMBLE                  ####
 ## ## ## ## ## ## ## ## ## ## ##
 
-setwd("C:/cloudstorage/googledrive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/") # Alice work
-#setwd("D:/Google Drive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/") # Alice laptop
+#setwd("C:/cloudstorage/googledrive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/") # Alice work
+setwd("D:/Google Drive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/") # Alice laptop
 library(plyr) # Must load before dplyr
 library(dplyr)
 library(ggplot2)
@@ -127,7 +127,7 @@ I <- paste0("I", vars)
 panelSJ <- panelSJ %>%
   group_by(reporter.ISO, year) %>%
   mutate_at(.vars = vars,
-            .fun = funs(Tot = sum(., na.rm = T))) %>%
+            .fun = funs(Tot = sum(abs(.), na.rm = T))) %>%
   ungroup()
 names(panelSJ) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ))
 
@@ -136,7 +136,7 @@ names(panelSJ) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ))
 panelSJ <- panelSJ %>%
   group_by(reporter.ISO, year) %>%
   mutate_at(.vars = vars,
-            .fun = funs(V = sum((. * pSecrecyScore)/sum(., na.rm = T), na.rm = T))) %>%
+            .fun = funs(V = sum((abs(.) * pSecrecyScore)/sum(abs(.), na.rm = T), na.rm = T))) %>%
   ungroup()
 names(panelSJ) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ))
 
@@ -168,7 +168,7 @@ wrI <- paste0("wrI", vars)
 panelSJ <- panelSJ %>%
   group_by(rRegion, year) %>%
   mutate_at(.vars = vars,
-            .fun = funs(wrTot = sum(., na.rm = T))) %>%
+            .fun = funs(wrTot = sum(abs(.), na.rm = T))) %>%
   ungroup()
 names(panelSJ) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ))
 
@@ -177,7 +177,7 @@ names(panelSJ) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ))
 panelSJ <- panelSJ %>%
   group_by(rRegion, year) %>%
   mutate_at(.vars = vars,
-            .fun = funs(wrV = sum((. * pSecrecyScore)/sum(., na.rm = T), na.rm = T))) %>%
+            .fun = funs(wrV = sum((abs(.) * pSecrecyScore)/sum(abs(.), na.rm = T), na.rm = T))) %>%
   ungroup()
 names(panelSJ) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ))
 
@@ -185,6 +185,7 @@ names(panelSJ) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ))
 # .... Calculate Intensities per region per year ####
 panelSJ <- panelSJ %>%
   group_by(rRegion, year) %>%
+  #distinct(reporter, .keep_all = TRUE) %>%
   mutate(wrrGDP = sum(rGDP, na.rm = T)) %>%
   ungroup()
 
@@ -214,7 +215,7 @@ wiI <- paste0("wiI", vars)
 panelSJ <- panelSJ %>%
   group_by(rIncome, year) %>%
   mutate_at(.vars = vars,
-            .fun = funs(wiTot = sum(., na.rm = T))) %>%
+            .fun = funs(wiTot = sum(abs(.), na.rm = T))) %>%
   ungroup()
 names(panelSJ) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ))
 
@@ -223,7 +224,7 @@ names(panelSJ) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ))
 panelSJ <- panelSJ %>%
   group_by(rIncome, year) %>%
   mutate_at(.vars = vars,
-            .fun = funs(wiV = sum((. * pSecrecyScore)/sum(., na.rm = T), na.rm = T))) %>%
+            .fun = funs(wiV = sum((abs(.) * pSecrecyScore)/sum(abs(.), na.rm = T), na.rm = T))) %>%
   ungroup()
 names(panelSJ) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ))
 
@@ -565,8 +566,8 @@ nino <- subset(yraverage, rIncome == "" & value <= eval(as.name(paste(choose.cut
 for (m in 1:length(measure)){
   for (f in 1:length(flowstock)){
     g <- ggplot(conduits %>% filter((variable == paste0(measure[m], vars[[f]][1]) |
-                                             variable == paste0(measure[m], vars[[f]][2])) &
-                                            value != 0) %>%
+                                       variable == paste0(measure[m], vars[[f]][2])) &
+                                      value != 0) %>%
                   distinct(reporter, variable, .keep_all = TRUE),
                 aes(x = reorder(reporter, value, sum), y = value, fill = fct_rev(variable))) +
       geom_col() + coord_flip() +
@@ -654,9 +655,9 @@ for (m in 1:length(measure)){
                                        var.labels[[3]][1], var.labels[[3]][2],
                                        var.labels[[4]][1], var.labels[[4]][2])),
                         values = rev(c(cols[[1]][2], cols[[1]][1],
-                                   cols[[2]][2], cols[[2]][1],
-                                   cols[[3]][2], cols[[3]][1],
-                                   cols[[4]][2], cols[[4]][1]))) +
+                                       cols[[2]][2], cols[[2]][1],
+                                       cols[[3]][2], cols[[3]][1],
+                                       cols[[4]][2], cols[[4]][1]))) +
       scale_y_continuous(labels = comma)
     ggsave(g,
            file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By region/Aggregates/", measure[m], "_All_", region.label[r], ".pdf"),
@@ -1162,14 +1163,14 @@ timeseries$wrVBanking <- rowMeans(subset(timeseries,
                                          select = c(wrVClaims, wrVLiabilities)),
                                   na.rm = T)
 timeseries$wrVDirectInv <- rowMeans(subset(timeseries,
-                                         select = c(wrVDII, wrVDIdO)),
-                                  na.rm = T)
+                                           select = c(wrVDII, wrVDIdO)),
+                                    na.rm = T)
 timeseries$wrVPortInv <- rowMeans(subset(timeseries,
-                                       select = c(wrVPIA, wrVPIdL)),
-                                na.rm = T)
+                                         select = c(wrVPIA, wrVPIdL)),
+                                  na.rm = T)
 timeseries$wrVTrade <- rowMeans(subset(timeseries,
-                                    select = c(wrVExport, wrVImport)),
-                             na.rm = T)
+                                       select = c(wrVExport, wrVImport)),
+                                na.rm = T)
 
 
 # .... Calculate average I for each measure in each year ####
@@ -1206,9 +1207,9 @@ timeseries$wrETrade <- rowMeans(subset(timeseries,
 timeseries <- timeseries %>% select(rRegion:year, wrVBanking:wrETrade)
 timeseries <- melt(timeseries,
                    id.vars = c("rRegion", "year"),
-              measure.vars = c("wrVBanking", "wrVDirectInv", "wrVPortInv", "wrVTrade",
-                               "wrIBanking", "wrIDirectInv", "wrIPortInv", "wrITrade",
-                               "wrEBanking", "wrEDirectInv", "wrEPortInv", "wrETrade"))
+                   measure.vars = c("wrVBanking", "wrVDirectInv", "wrVPortInv", "wrVTrade",
+                                    "wrIBanking", "wrIDirectInv", "wrIPortInv", "wrITrade",
+                                    "wrEBanking", "wrEDirectInv", "wrEPortInv", "wrETrade"))
 
 af <- subset(timeseries, rRegion == "Africa" & value != "Inf")
 am <- subset(timeseries, rRegion == "Americas" & value != "Inf")
@@ -1225,9 +1226,9 @@ region.label <- c("Africa", "Americas", "Asia", "Europe", "Oceania")
 for (m in 1:length(measure)){
   for (r in 1:length(region)){
     g <- ggplot(get(region[r]) %>% filter(variable == paste0("wr", measure[m], "Banking") |
-                                        variable == paste0("wr", measure[m], "DirectInv") |
-                                        variable == paste0("wr", measure[m], "PortInv") |
-                                        variable == paste0("wr", measure[m], "Trade")),
+                                            variable == paste0("wr", measure[m], "DirectInv") |
+                                            variable == paste0("wr", measure[m], "PortInv") |
+                                            variable == paste0("wr", measure[m], "Trade")),
                 aes(x = year, y = value, color = variable)) +
       geom_line(size = 1.5) +
       ggtitle(paste0(measure.label[m], " over time in ", region.label[r]),
@@ -1239,8 +1240,8 @@ for (m in 1:length(measure)){
       theme(legend.title = element_blank()) +
       scale_x_continuous(breaks= pretty_breaks())
     ggsave(g,
-       file = paste0("Figures/Overall Secrecy Score/Scores over time/For regions/", measure[m], "_", region.label[r],".pdf"),
-       width = 6, height = 5, units = "in")
+           file = paste0("Figures/Overall Secrecy Score/Scores over time/For regions/", measure[m], "_", region.label[r],".pdf"),
+           width = 6, height = 5, units = "in")
   }
 }
 
