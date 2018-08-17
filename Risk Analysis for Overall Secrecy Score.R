@@ -1606,5 +1606,68 @@ results <- panelSJ %>%
   arrange(rRegion, reporter, year) %>%
   ungroup()
 
+summary <- summary(results[,6:104])
+capture.output(summary, file = "Results/Summary statistics/Summary_Secrecy Score.txt")
+
 write.csv(results, "Results/Results_Secrecy Score.csv", row.names = FALSE)
-rm(results)
+
+results <- melt(results,
+                id.vars = c("reporter", "reporter.ISO", "year",
+                            "rRegion", "rIncome"),
+                measure.vars = c("VClaims", "VLiabilities", 
+                                 "VDIdI", "VDII", "VDIdO", "VDIO", 
+                                 "VPIA", "VPIL", "VPIdL", 
+                                 "VExport", "VImport",
+                                 "IClaims", "ILiabilities", 
+                                 "IDIdI", "IDII", "IDIdO", "IDIO", 
+                                 "IPIA", "IPIL", "IPIdL", 
+                                 "IExport", "IImport", 
+                                 "EClaims", "ELiabilities", 
+                                 "EDIdI", "EDII", "EDIdO", "EDIO", 
+                                 "EPIA", "EPIL", "EPIdL",
+                                 "EExport", "EImport", 
+                                 "wrVClaims", "wrVLiabilities",
+                                 "wrVDIdI", "wrVDII", "wrVDIdO", "wrVDIO",
+                                 "wrVPIA", "wrVPIL", "wrVPIdL", 
+                                 "wrVExport", "wrVImport", 
+                                 "wrIClaims", "wrILiabilities", 
+                                 "wrIDIdI", "wrIDII", "wrIDIdO", "wrIDIO", 
+                                 "wrIPIA", "wrIPIL", "wrIPIdL", 
+                                 "wrIExport", "wrIImport",
+                                 "wrEClaims", "wrELiabilities", 
+                                 "wrEDIdI", "wrEDII", "wrEDIdO", "wrEDIO", 
+                                 "wrEPIA", "wrEPIL", "wrEPIdL", 
+                                 "wrEExport", "wrEImport", 
+                                 "wiVClaims", "wiVLiabilities", 
+                                 "wiVDIdI", "wiVDII", "wiVDIdO", "wiVDIO", 
+                                 "wiVPIA", "wiVPIL", "wiVPIdL",
+                                 "wiVExport", "wiVImport", 
+                                 "wiIClaims", "wiILiabilities",
+                                 "wiIDIdI", "wiIDII", "wiIDIdO", "wiIDIO",
+                                 "wiIPIA", "wiIPIL", "wiIPIdL", 
+                                 "wiIExport", "wiIImport", 
+                                 "wiEClaims", "wiELiabilities", 
+                                 "wiEDIdI", "wiEDII", "wiEDIdO", "wiEDIO", 
+                                 "wiEPIA", "wiEPIL", "wiEPIdL", 
+                                 "wiEExport", "wiEImport"))
+
+grepx <- c("^V", "^I", "^E",
+           "^wrV", "^wrI", "^wrE",
+           "^wiV", "^wiI", "^wiE")
+
+for (x in 1:length(grepx)) {
+  g <- ggplot(results[grep(grepx[x], results$variable), ], 
+              aes(value, fill = variable)) +
+    geom_histogram() +
+    geom_vline(aes(xintercept = median(value, na.rm = T)),
+               linetype = "dashed") +
+    facet_wrap(~variable) +
+    theme(legend.position = "none",
+          axis.text.x = element_text(size = 7)) +
+    scale_x_continuous(labels = comma)
+  ggsave(g,
+         file = paste0("Results/Summary statistics/", "Histograms_", substring(grepx[x], 2), "_Secrecy Score", ".pdf"),
+         width = 6, height = 5, units = "in")
+}
+
+rm(results, grepx, summary, g, x)

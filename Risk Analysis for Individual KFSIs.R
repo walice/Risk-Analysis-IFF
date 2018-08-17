@@ -1318,7 +1318,6 @@ results <- panelSJ_KFSI %>%
   group_by(rRegion, year) %>%
   distinct(reporter, .keep_all = TRUE) %>%
   select(reporter, reporter.ISO, year, rRegion, rIncome,
-         pKFSI1,
          V1Claims:E3.6DIdO,
          wrV1Claims:wrV3.6DIdO,
          wrI1Claims:wrI3.6DIdO,
@@ -1329,5 +1328,77 @@ results <- panelSJ_KFSI %>%
   arrange(rRegion, reporter, year) %>%
   ungroup()
 
+summary <- summary(results[,6:95])
+capture.output(summary, file = "Results/Summary statistics/Summary_KFSI.txt")
+
 write.csv(results, "Results/Results_KFSI.csv", row.names = FALSE)
-rm(results)
+
+results <- melt(results,
+                id.vars = c("reporter", "reporter.ISO", "year",
+                            "rRegion", "rIncome"),
+                measure.vars = c("V1Claims", "V1Liabilities", 
+                                 "V18Claims", "V18Liabilities", 
+                                 "V3.6Export", "V3.6Import", 
+                                 "V3.6PIA", "V3.6PIdL", 
+                                 "V3.6DII", "V3.6DIdO", 
+                                 "I1Claims", "I1Liabilities", 
+                                 "I18Claims", "I18Liabilities", 
+                                 "I3.6Export", "I3.6Import", 
+                                 "I3.6PIA", "I3.6PIdL", 
+                                 "I3.6DII", "I3.6DIdO", 
+                                 "E1Claims", "E1Liabilities", 
+                                 "E18Claims", "E18Liabilities", 
+                                 "E3.6Export", "E3.6Import", 
+                                 "E3.6PIA", "E3.6PIdL", 
+                                 "E3.6DII", "E3.6DIdO", 
+                                 "wrV1Claims", "wrV1Liabilities", 
+                                 "wrV18Claims", "wrV18Liabilities", 
+                                 "wrV3.6Export", "wrV3.6Import", 
+                                 "wrV3.6PIA", "wrV3.6PIdL", 
+                                 "wrV3.6DII", "wrV3.6DIdO", 
+                                 "wrI1Claims", "wrI1Liabilities", 
+                                 "wrI18Claims", "wrI18Liabilities", 
+                                 "wrI3.6Export", "wrI3.6Import", 
+                                 "wrI3.6PIA", "wrI3.6PIdL", 
+                                 "wrI3.6DII", "wrI3.6DIdO", 
+                                 "wrE1Claims", "wrE1Liabilities", 
+                                 "wrE18Claims", "wrE18Liabilities", 
+                                 "wrE3.6Export", "wrE3.6Import", 
+                                 "wrE3.6PIA", "wrE3.6PIdL", 
+                                 "wrE3.6DII", "wrE3.6DIdO", 
+                                 "wiV1Claims", "wiV1Liabilities", 
+                                 "wiV18Claims", "wiV18Liabilities", 
+                                 "wiV3.6Export", "wiV3.6Import", 
+                                 "wiV3.6PIA", "wiV3.6PIdL", 
+                                 "wiV3.6DII", "wiV3.6DIdO", 
+                                 "wiI1Claims", "wiI1Liabilities", 
+                                 "wiI18Claims", "wiI18Liabilities", 
+                                 "wiI3.6Export", "wiI3.6Import", 
+                                 "wiI3.6PIA", "wiI3.6PIdL", 
+                                 "wiI3.6DII", "wiI3.6DIdO", 
+                                 "wiE1Claims", "wiE1Liabilities", 
+                                 "wiE18Claims", "wiE18Liabilities", 
+                                 "wiE3.6Export", "wiE3.6Import", 
+                                 "wiE3.6PIA", "wiE3.6PIdL", 
+                                 "wiE3.6DII", "wiE3.6DIdO"))
+
+grepx <- c("^V", "^I", "^E",
+           "^wrV", "^wrI", "^wrE",
+           "^wiV", "^wiI", "^wiE")
+
+for (x in 1:length(grepx)) {
+  g <- ggplot(results[grep(grepx[x], results$variable), ], 
+              aes(value, fill = variable)) +
+    geom_histogram() +
+    geom_vline(aes(xintercept = median(value, na.rm = T)),
+               linetype = "dashed") +
+    facet_wrap(~variable) +
+    theme(legend.position = "none",
+          axis.text.x = element_text(size = 7)) +
+    scale_x_continuous(labels = comma)
+  ggsave(g,
+         file = paste0("Results/Summary statistics/", "Histograms_", substring(grepx[x], 2), "_KFSI", ".pdf"),
+         width = 6, height = 5, units = "in")
+}
+
+rm(results, grepx, summary, g, x)
