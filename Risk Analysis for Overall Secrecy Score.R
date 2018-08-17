@@ -185,9 +185,10 @@ names(panelSJ) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ))
 # .... Calculate Intensities per region per year ####
 panelSJ <- panelSJ %>%
   group_by(rRegion, year) %>%
-  #distinct(reporter, .keep_all = TRUE) %>%
-  mutate(wrrGDP = sum(rGDP, na.rm = T)) %>%
-  ungroup()
+  do({
+    sum_value = sum(distinct(., reporter, year, rGDP)$rGDP, na.rm = TRUE);
+    mutate(., wrrGDP = sum_value)
+  })
 
 panelSJ <- panelSJ %>%
   group_by(rRegion, year) %>%
@@ -232,8 +233,10 @@ names(panelSJ) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ))
 # .... Calculate Intensities per income group per year ####
 panelSJ <- panelSJ %>%
   group_by(rIncome, year) %>%
-  mutate(wirGDP = sum(rGDP, na.rm = T)) %>%
-  ungroup()
+  do({
+    sum_value = sum(distinct(., reporter, year, rGDP)$rGDP, na.rm = TRUE);
+    mutate(., wirGDP = sum_value)
+  })
 
 panelSJ <- panelSJ %>%
   group_by(rIncome, year) %>%
@@ -256,7 +259,7 @@ rm(panel)
 
 
 # .. Check zero values in measures due to summing over NAs ####
-summary(panelSJ)
+summary(panelSJ[,72:205])
 
 # .... For Totals ####
 grep("Tot", names(panelSJ))
