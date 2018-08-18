@@ -1,0 +1,399 @@
+---
+title: "Interactive Choropleth Maps"
+author: "Alice Lépissier"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#setwd("C:/cloudstorage/googledrive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/Scripts/") # Alice work
+setwd("D:/Google Drive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/Scripts/") # Alice laptop
+```
+
+
+```{r preamble, echo = FALSE, warning = FALSE, message = FALSE}
+## ## ## ## ## ## ## ## ## ## ##
+# PREAMBLE                  ####
+## ## ## ## ## ## ## ## ## ## ##
+
+Sys.setenv("plotly_username"="walice")
+Sys.setenv("plotly_api_key"="ePj3ZljiMxPhlzGIcO66")
+library(plotly)
+library(xlsx)
+```
+
+
+```{r data, echo = FALSE, warning = FALSE, message = FALSE}
+## ## ## ## ## ## ## ## ## ## ##
+# IMPORT DATA               ####
+## ## ## ## ## ## ## ## ## ## ##
+
+data <- read.csv("../Results/VIE averages_for jurisdictions_Secrecy Score.csv")
+data <- data %>% select(reporter, variable, value)
+codes <- read.xlsx2("../Data/Codes_Masterlist.xlsx", sheetName = "Codes")
+codes$ISO3166.3 <- as.character(codes$ISO3166.3)
+colnames(codes)[colnames(codes) == "Country"] <- "reporter"
+data <- merge(data, codes[, c("reporter", "ISO3166.3")],
+             by = c("reporter"),
+             all.x = TRUE)
+colnames(data)[colnames(data) == "ISO3166.3"] <- "reporter.ISO"
+rm(codes)
+```
+
+
+```{r mapgeos, echo = FALSE, warning = FALSE, message = FALSE}
+## ## ## ## ## ## ## ## ## ## ##
+# MAP OPTIONS               ####
+## ## ## ## ## ## ## ## ## ## ##
+
+g <- list(
+  showframe = FALSE,
+  showcoastlines = TRUE,
+  projection = list(type = "Natural earth")
+)
+# See more projection options here:
+# http://etpinard.xyz/plotly-dashboards/map-projections/
+l <- list(color = toRGB("grey"), width = 0.5)
+```
+
+Hover on the map for further information.
+
+# Vulnerability
+
+```{r VClaims, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xVClaims")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#C93312", "#83210c"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Vulnerability") %>%
+  layout(
+    title = "Vulnerability in Banking Claims",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "VClaims")
+# chart_link
+```
+
+
+```{r VLiabilities, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xVLiabilities")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#899DA4", "#62777f"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Vulnerability") %>%
+  layout(
+    title = "Vulnerability in Banking Liabilities",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "VLiabilities")
+# chart_link
+```
+
+
+```{r VDII, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xVDII")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#FD6467", "#fc181d"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Vulnerability") %>%
+  layout(
+    title = "Vulnerability in Inward Direct Investment Positions",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "VDII")
+# chart_link
+```
+
+
+```{r VDIdO, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xVDIdO")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#7294D4", "#3a68bf"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Vulnerability") %>%
+  layout(
+    title = "Vulnerability in Outward Direct Investment Positions (derived)",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "VDIdO")
+# chart_link
+```
+
+
+```{r VPIA, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xVPIA")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#F98400", "#ad5b00"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Vulnerability") %>%
+  layout(
+    title = "Vulnerability in Portfolio Investment Assets",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "VPIA")
+# chart_link
+```
+
+
+```{r VPIdL, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xVPIdL")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#00A08A", "#005448"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Vulnerability") %>%
+  layout(
+    title = "Vulnerability in Portfolio Investment Liabilities (derived)",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "VPIdL")
+# chart_link
+```
+
+
+```{r VExport, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xVExport")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#800080", "#340034"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Vulnerability") %>%
+  layout(
+    title = "Vulnerability in Exports",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "VExport")
+# chart_link
+```
+
+
+```{r VImport, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xVImport")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#FAD510", "#ba9d04"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Vulnerability") %>%
+  layout(
+    title = "Vulnerability in Imports",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "VImport")
+# chart_link
+```
+
+
+
+# Exposure
+
+```{r EClaims, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xEClaims")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#C93312", "#83210c"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Exposure") %>%
+  layout(
+    title = "Exposure in Banking Claims",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "EClaims")
+# chart_link
+```
+
+
+```{r ELiabilities, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xELiabilities")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#899DA4", "#62777f"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Exposure") %>%
+  layout(
+    title = "Exposure in Banking Liabilities",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "ELiabilities")
+# chart_link
+```
+
+
+```{r EDII, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xEDII")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#FD6467", "#fc181d"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Exposure") %>%
+  layout(
+    title = "Exposure in Inward Direct Investment Positions",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "EDII")
+# chart_link
+```
+
+
+```{r EDIdO, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xEDIdO")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#7294D4", "#3a68bf"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Exposure") %>%
+  layout(
+    title = "Exposure in Outward Direct Investment Positions (derived)",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "EDIdO")
+# chart_link
+```
+
+
+```{r EPIA, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xEPIA")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#F98400", "#ad5b00"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Exposure") %>%
+  layout(
+    title = "Exposure in Portfolio Investment Assets",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "EPIA")
+# chart_link
+```
+
+
+```{r EPIdL, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xEPIdL")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#00A08A", "#005448"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Exposure") %>%
+  layout(
+    title = "Exposure in Portfolio Investment Liabilities (derived)",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "EPIdL")
+# chart_link
+```
+
+
+```{r EExport, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xEExport")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#800080", "#340034"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Exposure") %>%
+  layout(
+    title = "Exposure in Exports",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "EExport")
+# chart_link
+```
+
+
+```{r EImport, echo = FALSE, warning = FALSE, message = FALSE}
+viz <- subset(data, variable == "xEImport")
+
+p <- plot_geo(viz) %>%
+  add_trace(
+    z = ~round(value, 2), color = ~value, 
+    colors = c("white", "#FAD510", "#ba9d04"),
+    text = ~reporter, locations = ~reporter.ISO, marker = list(line = l)
+  ) %>%
+  colorbar(title = "Exposure") %>%
+  layout(
+    title = "Exposure in Imports",
+    geo = g
+  )
+p
+
+# chart_link = api_create(p, filename = "EImport")
+# chart_link
+```

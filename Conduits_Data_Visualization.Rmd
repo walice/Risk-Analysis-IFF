@@ -1,19 +1,22 @@
 ---
 title: "Conduits Data Visualization"
-author: "Alice Lepissier"
+author: "Alice Lépissier"
 date: "August 13, 2018"
 output: html_document
 ---
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-setwd("C:/cloudstorage/googledrive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/Scripts/") # Alice work
+#setwd("C:/cloudstorage/googledrive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/Scripts/") # Alice work
+setwd("D:/Google Drive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/") # Alice laptop
 ```
 
 ```{r preamble, echo = FALSE, message = FALSE, warning = FALSE}
 ## ## ## ## ## ## ## ## ## ## ##
 # PREAMBLE                  ####
 ## ## ## ## ## ## ## ## ## ## ##
+
+library(colorspace)
 library(dplyr)
 library(geosphere)
 library(leaflet)
@@ -38,7 +41,7 @@ centroids$Country <- as.character(centroids$Country)
 centroids$Longitude <- as.numeric(as.character(centroids$Longitude))
 centroids$Latitude <- as.numeric(as.character(centroids$Latitude))
 
-load("../Results/panelSJ.RData")
+load("../Data/panelSJ.RData")
 ```
 
 
@@ -92,7 +95,10 @@ hover <- paste0(flows$origins, " to ",
                 flows$destinations, " secrecy score: ",
                 flows$pSecrecyScore)
 
+# cols <- rainbow_hcl(5)
+# pal <- colorFactor(cols, flows$origins)
 pal <- colorFactor(brewer.pal(4, "Set2"), flows$origins)
+
 leaflet() %>%
   addProviderTiles("CartoDB.Positron") %>%
   addPolylines(data = flows, weight = ~secrecy, label = hover, 
