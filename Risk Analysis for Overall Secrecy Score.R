@@ -685,7 +685,7 @@ for (m in 1:length(measure)){
       guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
       scale_fill_manual(labels = c("Trade", "Portfolio Investment",
                                    "Direct Investment", "Banking Positions"),
-                        values = wes_palette("GrandBudapest1")) +
+                        values = wes_palette("Chevalier1")) +
       scale_y_continuous(labels = comma)
     ggsave(g,
            file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By region/Aggregates/", measure[m], "_All_Aggregated_", region.label[r], ".pdf"),
@@ -792,7 +792,7 @@ for (m in 1:length(measure)){
       guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
       scale_fill_manual(labels = c("Trade", "Portfolio Investment",
                                    "Direct Investment", "Banking Positions"),
-                        values = wes_palette("GrandBudapest1")) +
+                        values = wes_palette("Chevalier1")) +
       scale_y_continuous(labels = comma)
     ggsave(g,
            file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/By income group/Aggregates/", measure[m], "_All_Aggregated_", incomegroup.label[i], ".pdf"),
@@ -958,7 +958,7 @@ for (m in 1:length(wrmeasure)){
     guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
     scale_fill_manual(labels = c("Trade", "Portfolio Investment",
                                  "Direct Investment", "Banking Positions"),
-                      values = wes_palette("GrandBudapest1"))  +
+                      values = wes_palette("Chevalier1"))  +
     scale_y_continuous(labels = comma)
   ggsave(g,
          file = paste0("Figures/Overall Secrecy Score/Regional scores/", wrmeasure[m], "_All_Aggregated",".pdf"),
@@ -1123,7 +1123,7 @@ for (m in 1:length(wimeasure)){
     guides(fill = guide_legend(title = NULL, reverse = TRUE)) +
     scale_fill_manual(labels = c("Trade", "Portfolio Investment",
                                  "Direct Investment", "Banking Positions"),
-                      values = wes_palette("GrandBudapest1"))  +
+                      values = wes_palette("Chevalier1"))  +
     scale_y_continuous(labels = comma)
   ggsave(g,
          file = paste0("Figures/Overall Secrecy Score/Income group scores/", wimeasure[m], "_All_Aggregated",".pdf"),
@@ -1239,7 +1239,7 @@ for (m in 1:length(measure)){
       xlab("Year") + ylab(paste0(measure.label[m], " Score")) +
       scale_color_manual(labels = c("Banking Positions","Direct Investment",
                                     "Portfolio Investment", "Trade"),
-                         values = rev(wes_palette("GrandBudapest1"))) +
+                         values = rev(wes_palette("Chevalier1"))) +
       theme(legend.title = element_blank()) +
       scale_x_continuous(breaks= pretty_breaks())
     ggsave(g,
@@ -1342,7 +1342,7 @@ for (m in 1:length(measure)){
       xlab("Year") + ylab(paste0(measure.label[m], " Score")) +
       scale_color_manual(labels = c("Banking Positions","Direct Investment",
                                     "Portfolio Investment", "Trade"),
-                         values = rev(wes_palette("GrandBudapest1"))) +
+                         values = rev(wes_palette("Chevalier1"))) +
       theme(legend.title = element_blank()) +
       scale_x_continuous(breaks= pretty_breaks())
     ggsave(g, 

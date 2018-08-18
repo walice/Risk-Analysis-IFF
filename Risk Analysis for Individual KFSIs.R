@@ -1137,7 +1137,7 @@ for (m in 1:length(measure)){
       xlab("Year") + ylab(paste0(measure.label[m], " Score")) +
       scale_color_manual(labels = c("Banking Positions", "Direct Investment",
                                     "Portfolio Investment", "Trade"),
-                         values = rev(wes_palette("GrandBudapest1"))) +
+                         values = rev(wes_palette("Chevalier1"))) +
       theme(legend.title = element_blank()) +
       scale_x_continuous(breaks= pretty_breaks())
     ggsave(g,
@@ -1282,7 +1282,7 @@ for (m in 1:length(measure)){
       xlab("Year") + ylab(paste0(measure.label[m], " Score")) +
       scale_color_manual(labels = c("Banking Positions", "Direct Investment",
                                     "Portfolio Investment", "Trade"),
-                         values = rev(wes_palette("GrandBudapest1"))) +
+                         values = rev(wes_palette("Chevalier1"))) +
       theme(legend.title = element_blank()) +
       scale_x_continuous(breaks= pretty_breaks())
     ggsave(g, 
