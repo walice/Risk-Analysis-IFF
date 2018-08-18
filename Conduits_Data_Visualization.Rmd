@@ -1,7 +1,6 @@
 ---
 title: "Conduits Data Visualization"
 author: "Alice Lépissier"
-date: "August 13, 2018"
 output: html_document
 ---
 

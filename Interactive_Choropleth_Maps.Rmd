@@ -16,8 +16,6 @@ setwd("D:/Google Drive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Ri
 # PREAMBLE                  ####
 ## ## ## ## ## ## ## ## ## ## ##
 
-Sys.setenv("plotly_username"="walice")
-Sys.setenv("plotly_api_key"="ePj3ZljiMxPhlzGIcO66")
 library(plotly)
 library(xlsx)
 ```
