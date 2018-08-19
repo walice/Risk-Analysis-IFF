@@ -54,7 +54,7 @@ g <- list(
 l <- list(color = toRGB("grey"), width = 0.5)
 ```
 
-Hover on the map for further information.
+Hover on the maps for further information.
 
 # Vulnerability
 

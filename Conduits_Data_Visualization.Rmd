@@ -45,6 +45,9 @@ centroids$Latitude <- as.numeric(as.character(centroids$Latitude))
 load("../Data/panelSJ.RData")
 ```
 
+Hover on the maps for further information.
+
+You can re-arrange the countries in the Sankey diagram alphabetically or by size of the flow, and by clicking and dragging them.
 
 # Banking Positions
 
@@ -58,7 +61,7 @@ conduits <- c("Isle of Man", "Luxembourg", "Macao")
 ```
 
 
-# Claims
+## Claims
 ```{r Claims, echo = FALSE}
 # .. Claims ####
 viz <- subset(panelSJ, year == 2015,
@@ -111,7 +114,7 @@ parset(viz, dimensions = c('reporter', 'partner'),
 ```
 
 
-# Liabilities
+## Liabilities
 ```{r Liabilities, echo = FALSE}
 # .. Liabilities ####
 viz <- subset(panelSJ, year == 2015,
@@ -229,7 +232,7 @@ parset(viz, dimensions = c('reporter', 'partner'),
 ```
 
 
-# Outward (derived)
+## Outward (derived)
 ```{r DIdO, echo = FALSE}
 # .. Outward (derived) ####
 viz <- subset(panelSJ, year == 2015,
@@ -347,7 +350,7 @@ parset(viz, dimensions = c('reporter', 'partner'),
 ```
 
 
-# Liabilities (derived)
+## Liabilities (derived)
 ```{r PIdL, echo = FALSE}
 # .. Liabilities (derived) ####
 viz <- subset(panelSJ, year == 2015,
