@@ -577,10 +577,23 @@ panel <- panel %>%
 ## ## ## ## ## ## ## ## ## ## ##
 
 save(panel, file = "Data/panel.RData")
+
+summary <- summary(LBS)
+capture.output(summary, file = "Results/Summary statistics/Summary_LBS.txt")
 save(LBS, file = "Data/LBS/LBS_clean.Rdata")
+
+summary <- summary(CDIS)
+capture.output(summary, file = "Results/Summary statistics/Summary_CDIS.txt")
 save(CDIS, file = "Data/CDIS/CDIS_clean.Rdata")
+
+summary <- summary(CPIS)
+capture.output(summary, file = "Results/Summary statistics/Summary_CPIS.txt")
 save(CPIS, file = "Data/CPIS/CPIS_clean.Rdata")
+
+summary <- summary(comtrade)
+capture.output(summary, file = "Results/Summary statistics/Summary_Comtrade.txt")
 save(comtrade, file = "Data/Comtrade/comtrade_clean.Rdata")
+
 save(FSI, file = "Data/FSI/FSI_clean.Rdata")
 save(WDI, file = "Data/WDI/WDI_clean.Rdata")
 
