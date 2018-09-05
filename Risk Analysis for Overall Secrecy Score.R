@@ -805,6 +805,10 @@ for (m in 1:length(measure)){
 yraverage <- yraverage[order(yraverage$variable, yraverage$reporter), ]
 write.csv(yraverage, "Results/VIE averages_for jurisdictions_Secrecy Score.csv", row.names = FALSE)
 
+yraverage_wide <- yraverage %>% select(variable:value)
+yraverage_wide <- spread(yraverage_wide, variable, value)
+write.csv(yraverage_wide, "Results/VIE averages_for jurisdictions_Secrecy Score_wide.csv", row.names = FALSE)
+
 
 # .. Calculate average measures across years per region ####
 measures <- c("wrVClaims", "wrVLiabilities",
