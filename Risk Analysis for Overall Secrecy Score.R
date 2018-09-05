@@ -1103,6 +1103,9 @@ for (m in 1:length(wrmeasure)){
 yraverage <- yraverage[order(yraverage$variable, yraverage$rRegion), ]
 write.csv(yraverage, "Results/VIE averages_for regions_Secrecy Score.csv", row.names = FALSE)
 
+yraverage_wide <- spread(yraverage, variable, value)
+write.csv(yraverage_wide, "Results/VIE averages_for regions_Secrecy Score_wide.csv", row.names = FALSE)
+
 
 # .. Calculate average measures across years per income group ####
 measures <- c("wiVClaims", "wiVLiabilities",
@@ -1268,6 +1271,9 @@ for (m in 1:length(wimeasure)){
 yraverage <- yraverage[order(yraverage$variable, yraverage$rIncome), ]
 write.csv(yraverage, "Results/VIE averages_for income groups_Secrecy Score.csv", row.names = FALSE)
 
+yraverage_wide <- spread(yraverage, variable, value)
+write.csv(yraverage_wide, "Results/VIE averages_for income groups_Secrecy Score_wide.csv", row.names = FALSE)
+
 
 # .. Housekeeping ####
 rm(cols, f, flowstock, g, i, incomegroup, incomegroup.label,
@@ -1276,7 +1282,7 @@ rm(cols, f, flowstock, g, i, incomegroup, incomegroup.label,
    af, am, as, eu, oc, nr, HIC, UMC, LMC, LIC, ni,
    afno, amno, asno, euno, ocno, nrno, HICno, UMCno, LMCno, LICno, nino,
    pctiles, choose.cut, regionno, incomegroupno)
-rm(yraverage, conduits)
+rm(yraverage, conduits, yraverage_wide)
 
 
 
@@ -1386,6 +1392,9 @@ for (m in 1:length(measure)){
 timeseries <- timeseries[order(timeseries$variable, timeseries$rRegion, timeseries$year), ]
 write.csv(timeseries, "Results/VIE time series_for regions_Secrecy Score.csv", row.names = FALSE)
 
+timeseries_wide <- spread(timeseries, variable, value)
+write.csv(timeseries_wide, "Results/VIE time series_for regions_Secrecy Score_wide.csv", row.names = FALSE)
+
 
 # .. For income groups ####
 timeseries <- panelSJ %>% 
@@ -1489,11 +1498,14 @@ for (m in 1:length(measure)){
 timeseries <- timeseries[order(timeseries$variable, timeseries$rIncome, timeseries$year), ]
 write.csv(timeseries, "Results/VIE time series_for income groups_Secrecy Score.csv", row.names = FALSE)
 
+timeseries_wide <- spread(timeseries, variable, value)
+write.csv(timeseries_wide, "Results/VIE time series_for income groups_Secrecy Score_wide.csv", row.names = FALSE)
+
 
 # .. Housekeeping ####
 rm(g, i, incomegroup, incomegroup.label, m, measure, measure.label, r, region, region.label,
    af, am, as, eu, oc, HIC, UMC, LMC, LIC)
-rm(timeseries)
+rm(timeseries, timeseries_wide)
 
 
 
