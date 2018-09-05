@@ -10,6 +10,7 @@
 # .. Jurisdiction-level scores
 # .... Calculate Total of flow/stock per reporter per year
 # .... Calculate Vulnerabilities per reporter per year
+# .... Calculate Share of Vulnerability per reporter per year
 # .... Calculate Intensities per reporter per year
 # .... Calculate Exposures per reporter per year
 # .. Region-level scores
@@ -139,6 +140,134 @@ panelSJ <- panelSJ %>%
             .fun = funs(V = sum((abs(.) * pSecrecyScore)/sum(abs(.), na.rm = T), na.rm = T))) %>%
   ungroup()
 names(panelSJ) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ))
+
+
+# .... Calculate Share of Vulnerability per reporter per year ####
+panelSJ_Share <- panelSJ %>%
+  group_by(reporter.ISO, year) %>%
+  mutate_at(.vars = vars,
+            .fun = funs(VShare = (abs(.) * pSecrecyScore)/sum(abs(.) * pSecrecyScore, na.rm = T))) %>%
+  ungroup()
+names(panelSJ_Share) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ_Share))
+
+panelSJ_Share <- panelSJ_Share %>%
+  group_by(reporter.ISO, year) %>%
+  mutate_at(.vars = paste0("VShare", vars),
+            .fun = funs(VShareSum = sum(., na.rm = T))) %>%
+  ungroup()
+names(panelSJ_Share) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ_Share))
+names(panelSJ_Share) <- gsub("VShareSumVShare", "VShareSum", names(panelSJ_Share))
+
+grep("VShareSum", names(panelSJ_Share))
+for (c in 83:93){
+  z <- which(panelSJ_Share[, c+22] == 0)
+  zeroTot <- panelSJ_Share[z, ]
+  print(unique(zeroTot[, c]))
+}
+# All the 0 values in the shares of Vulnerabilities are due to Vulnerabilities of 0,
+# which are themselves due to NAs in the original data.
+# We can convert them back to NAs.
+# na.rm = T is needed when summing otherwise a single NA value will return NAs (even though there may be valid other values).
+
+missing <- apply(subset(panelSJ, select = c(Claims, Liabilities,
+                                            DII, DIdO, 
+                                            PIA, PIdL,
+                                            Export, Import)), MARGIN = 1, function(x) sum(is.na(x))) == 8
+panelSJ_Share <- panelSJ_Share[which(missing == FALSE),]
+panelSJ_Share <- panelSJ_Share %>%
+  select(id:pIncome,
+         pSecrecyScore,
+         Claims, Liabilities,
+         DII, DIdO, 
+         PIA, PIdL,
+         Export, Import,
+         VClaims:VImport,
+         VShareClaims:VShareImport) %>%
+  arrange(id)
+
+Claims <- panelSJ_Share %>% 
+  filter(!is.na(Claims)) %>%
+  select(id:pIncome,
+         pSecrecyScore,
+         Claims,
+         VClaims,
+         VShareClaims) %>%
+  arrange(reporter, year, -VShareClaims)
+write.csv(Claims, "Results/Vulnerability shares/Claims.csv", row.names = FALSE)
+
+Liabilities <- panelSJ_Share %>% 
+  filter(!is.na(Liabilities)) %>%
+  select(id:pIncome,
+         pSecrecyScore,
+         Liabilities,
+         VLiabilities,
+         VShareLiabilities) %>%
+  arrange(reporter, year, -VShareLiabilities)
+write.csv(Liabilities, "Results/Vulnerability shares/Liabilities.csv", row.names = FALSE)
+
+DII <- panelSJ_Share %>% 
+  filter(!is.na(DII)) %>%
+  select(id:pIncome,
+         pSecrecyScore,
+         DII,
+         VDII,
+         VShareDII) %>%
+  arrange(reporter, year, -VShareDII)
+write.csv(DII, "Results/Vulnerability shares/DII.csv", row.names = FALSE)
+
+DIdO <- panelSJ_Share %>% 
+  filter(!is.na(DIdO)) %>%
+  select(id:pIncome,
+         pSecrecyScore,
+         DIdO,
+         VDIdO,
+         VShareDIdO) %>%
+  arrange(reporter, year, -VShareDIdO)
+write.csv(DIdO, "Results/Vulnerability shares/DIdO.csv", row.names = FALSE)
+
+PIA <- panelSJ_Share %>% 
+  filter(!is.na(PIA)) %>%
+  select(id:pIncome,
+         pSecrecyScore,
+         PIA,
+         VPIA,
+         VSharePIA) %>%
+  arrange(reporter, year, -VSharePIA)
+write.csv(PIA, "Results/Vulnerability shares/PIA.csv", row.names = FALSE)
+
+PIdL <- panelSJ_Share %>% 
+  filter(!is.na(PIdL)) %>%
+  select(id:pIncome,
+         pSecrecyScore,
+         PIdL,
+         VPIdL,
+         VSharePIdL) %>%
+  arrange(reporter, year, -VSharePIdL)
+write.csv(PIdL, "Results/Vulnerability shares/PIdL.csv", row.names = FALSE)
+
+Export <- panelSJ_Share %>% 
+  filter(!is.na(Export)) %>%
+  select(id:pIncome,
+         pSecrecyScore,
+         Export,
+         VExport,
+         VShareExport) %>%
+  arrange(reporter, year, -VShareExport)
+write.csv(Export, "Results/Vulnerability shares/Export.csv", row.names = FALSE)
+
+Import <- panelSJ_Share %>% 
+  filter(!is.na(Import)) %>%
+  select(id:pIncome,
+         pSecrecyScore,
+         Import,
+         VImport,
+         VShareImport) %>%
+  arrange(reporter, year, -VShareImport)
+write.csv(Import, "Results/Vulnerability shares/Import.csv", row.names = FALSE)
+
+rm(zeroTot, c, z, missing,
+   Claims, Liabilities, DII, DIdO, PIA, PIdL, Export, Import,
+   panelSJ_Share)
 
 
 # .... Calculate Intensities per reporter per year ####
