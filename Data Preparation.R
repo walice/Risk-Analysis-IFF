@@ -584,6 +584,19 @@ panel <- panel %>%
 ## ## ## ## ## ## ## ## ## ## ##
 
 save(panel, file = "Data/panel.RData")
+write.csv(panel, "Data/panel.csv", row.names = FALSE)
+
+Missing <- apply(subset(panel, select = c(Claims, Liabilities,
+                                            DII, DIdO,
+                                            PIA, PIdL,
+                                            Export, Import)), MARGIN = 1, function(x) sum(is.na(x)))
+coverage <- cbind(subset(panel, select = c(id:pIncome,
+                                           Claims, Liabilities,
+                                           DII, DIdO,
+                                           PIA, PIdL,
+                                           Export, Import)),
+                  as.data.frame(Missing))
+write.csv(coverage, "Data/Data availability/Coverage transaction-level.csv", row.names = FALSE)
 
 summary <- summary(LBS)
 capture.output(summary, file = "Results/Summary statistics/Summary_LBS.txt")
@@ -620,4 +633,4 @@ save(comtrade, file = "Data/Comtrade/comtrade_clean.Rdata")
 save(FSI, file = "Data/FSI/FSI_clean.Rdata")
 save(WDI, file = "Data/WDI/WDI_clean.Rdata")
 
-#rm(panel, codes, LBS, CDIS, CPIS, comtrade, FSI, WDI, KFSI, summary, reporters)
+rm(panel, codes, LBS, CDIS, CPIS, comtrade, FSI, WDI, KFSI, summary, reporters, Missing, coverage)
