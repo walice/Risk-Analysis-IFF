@@ -182,6 +182,8 @@ CDIS <- CDIS[, c("id", "reporter", "reporter.ISO",
                  "DIdI", "DII",
                  "DIdO", "DIO")]
 CDIS <- CDIS[order(CDIS$id), ]
+CDIS$reporter <- as.character(CDIS$reporter)
+CDIS$partner <- as.character(CDIS$partner)
 missing <- apply(CDIS, MARGIN = 1, function(x) sum(is.na(x))) == 4
 CDIS <- CDIS[which(missing == FALSE),]
 rm(noISO, missing)
@@ -234,6 +236,8 @@ CPIS <- CPIS[, c("id", "reporter", "reporter.ISO",
                  "partner", "partner.ISO", "year",
                  "PIA", "PIL", "PIdL")]
 CPIS <- CPIS[order(CPIS$id), ]
+CPIS$reporter <- as.character(CPIS$reporter)
+CPIS$partner <- as.character(CPIS$partner)
 missing <- apply(CPIS, MARGIN = 1, function(x) sum(is.na(x))) == 3
 CPIS <- CPIS[which(missing == FALSE),]
 rm(noISO, missing)
@@ -277,6 +281,9 @@ comtrade$id <- paste(comtrade$reporter.ISO, comtrade$partner.ISO, comtrade$year,
 comtrade <- comtrade[, c("id", "reporter", "reporter.ISO",
                          "partner", "partner.ISO", "year",
                          "flow", "TradeValue")]
+comtrade <- comtrade[order(comtrade$id), ]
+comtrade$reporter <- as.character(comtrade$reporter)
+comtrade$partner <- as.character(comtrade$partner)
 comtrade <- comtrade[order(comtrade$id), ]
 
 
@@ -580,21 +587,37 @@ save(panel, file = "Data/panel.RData")
 
 summary <- summary(LBS)
 capture.output(summary, file = "Results/Summary statistics/Summary_LBS.txt")
+reporters <- as.data.frame(unique(LBS$reporter))
+names(reporters) <- "Reporting countries"
+capture.output(reporters, file = "Data/Data availability/Reporting countries_LBS.txt")
+write.csv(LBS, "Data/LBS/LBS_clean.csv", row.names = FALSE)
 save(LBS, file = "Data/LBS/LBS_clean.Rdata")
 
 summary <- summary(CDIS)
 capture.output(summary, file = "Results/Summary statistics/Summary_CDIS.txt")
+reporters <- as.data.frame(unique(CDIS$reporter))
+names(reporters) <- "Reporting countries"
+capture.output(reporters, file = "Data/Data availability/Reporting countries_CDIS.txt")
+write.csv(CDIS, "Data/CDIS/CDIS_clean.csv", row.names = FALSE)
 save(CDIS, file = "Data/CDIS/CDIS_clean.Rdata")
 
 summary <- summary(CPIS)
 capture.output(summary, file = "Results/Summary statistics/Summary_CPIS.txt")
+reporters <- as.data.frame(unique(CPIS$reporter))
+names(reporters) <- "Reporting countries"
+capture.output(reporters, file = "Data/Data availability/Reporting countries_CPIS.txt")
+write.csv(CPIS, "Data/CPIS/CPIS_clean.csv", row.names = FALSE)
 save(CPIS, file = "Data/CPIS/CPIS_clean.Rdata")
 
 summary <- summary(comtrade)
 capture.output(summary, file = "Results/Summary statistics/Summary_Comtrade.txt")
+reporters <- as.data.frame(unique(comtrade$reporter))
+names(reporters) <- "Reporting countries"
+capture.output(reporters, file = "Data/Data availability/Reporting countries_Comtrade.txt")
+write.csv(comtrade, "Data/Comtrade/comtrade_clean.csv", row.names = FALSE)
 save(comtrade, file = "Data/Comtrade/comtrade_clean.Rdata")
 
 save(FSI, file = "Data/FSI/FSI_clean.Rdata")
 save(WDI, file = "Data/WDI/WDI_clean.Rdata")
 
-rm(panel, codes, LBS, CDIS, CPIS, comtrade, FSI, WDI, KFSI)
+#rm(panel, codes, LBS, CDIS, CPIS, comtrade, FSI, WDI, KFSI, summary, reporters)
