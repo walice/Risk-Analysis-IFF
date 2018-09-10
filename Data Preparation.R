@@ -70,7 +70,7 @@ LBS <- subset(LBS, select = -c(Type.of.instruments, Counterparty.sector))
 # .. Sum quarterly data to yearly ####
 LBS <- LBS[, -grep(number_range(1977,2007), names(LBS))]
 LBS[LBS == "\\" | LBS == "-"] <- NA
-LBS[4:44] <- lapply(LBS[4:44], as.numeric)
+LBS[4:44] <- lapply(LBS[4:44], function(x) as.numeric(as.character(x)))
 LBS$yr2008 <- rowSums(LBS[grep("2008", names(LBS))], na.rm = T)
 LBS$yr2009 <- rowSums(LBS[grep("2009", names(LBS))], na.rm = T)
 LBS$yr2010 <- rowSums(LBS[grep("2010", names(LBS))], na.rm = T)
