@@ -692,6 +692,61 @@ LICno <- subset(yraverage, rIncome == "LIC" & value <= eval(as.name(paste(choose
 nino <- subset(yraverage, rIncome == "" & value <= eval(as.name(paste(choose.cut))))
 
 
+# .. Plot country-risk graphs ####
+
+reporters <- unique(panelSJ$reporter)
+
+var.labels.all <- setNames(rep(c("Claims", "Liabilities",
+                                 "Inward", "Outward (derived)",
+                                 "Assets", "Liabilities (derived)",
+                                 "Exports", "Imports"), 3),
+                           paste0(c(rep("xV", 8),
+                                    rep("xI", 8),
+                                    rep("xE", 8)), 
+                                  rep(c("Claims", "Liabilities",
+                                        "DII", "DIdO",
+                                        "PIA", "PIdL",
+                                        "Export", "Import"), 3)))
+
+col.labels.all <- setNames(rep(c("#C93312", "#899DA4", 
+                                 "#FD6467", "#7294D4",
+                                 "#F98400", "#00A08A",
+                                 "#800080", "#FAD510"), 3),
+                           paste0(c(rep("xV", 8),
+                                    rep("xI", 8),
+                                    rep("xE", 8)), 
+                                  rep(c("Claims", "Liabilities",
+                                        "DII", "DIdO",
+                                        "PIA", "PIdL",
+                                        "Export", "Import"), 3)))
+
+vars.all <- paste("Claims", "Liabilities",
+                  "DII", "DIdO",
+                  "PIA", "PIdL",
+                  "Export", "Import", sep = "|")
+
+for (m in 1:length(measure)){
+  for (r in 1:length(reporters)){
+    g <- ggplot(yraverage %>% filter(str_detect(variable, paste0("^",measure[m])) & 
+                                       str_detect(variable, vars.all) &
+                                       reporter == reporters[r]),
+                aes(x = fct_rev(variable), y = value, fill = (variable))) +
+      geom_col() + coord_flip() +
+      ylab(paste0(measure.label[m], " Score")) + 
+      scale_fill_manual(values = col.labels.all,
+                        labels = var.labels.all) + 
+      scale_y_continuous(labels = comma) +
+      scale_x_discrete(labels = var.labels.all) +
+      theme(axis.title.y = element_blank()) + 
+      guides(fill = FALSE) +
+      ggtitle(reporters[r]) 
+    ggsave(g,
+           file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/Country risk profiles/", measure[m], "_", reporters[r],".pdf"),
+           width = 6, height = 5, units = "in")
+  }
+}
+
+
 # .. Plot jurisdiction-level scores ####
 
 # .... For conduits ####
