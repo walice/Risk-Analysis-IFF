@@ -32,6 +32,10 @@
 # Average Measures Graphs
 # .. Calculate average measures across years per reporter
 # .. Extract conduits
+# .. Plot country-risk graphs
+# .... With NAs labelled, disaggregated
+# .... Without NAs labelled, disaggregated
+# .... With NAs labelled, aggregated
 # .. Plot jurisdiction-level scores
 # .... For conduits
 # .... By region, excluding conduits
@@ -67,6 +71,8 @@
 # .... Export
 # .. Housekeeping
 # Yearly snapshot graphs
+# .. Plot country-risk graphs
+# .... With NAs labelled
 # .. Plot jurisdiction-level scores
 # .... By region
 # .... By income group
@@ -694,11 +700,16 @@ nino <- subset(yraverage, rIncome == "" & value <= eval(as.name(paste(choose.cut
 
 # .. Plot country-risk graphs ####
 
-reporters <- unique(panelSJ$reporter)
+countryrisk <- spread(yraverage[, 1:5], variable, value)
+countryrisk <- gather(countryrisk, variable, value, 4:ncol(countryrisk),
+                      factor_key = TRUE)
 
-var.labels.all <- setNames(rep(c("Claims", "Liabilities",
-                                 "Inward", "Outward (derived)",
-                                 "Assets", "Liabilities (derived)",
+reporters <- unique(panelSJ$reporter)
+reporters.string <- iconv(reporters, from = "UTF-8", to = "ASCII//TRANSLIT")
+
+var.labels.all <- setNames(rep(c("Banking Claims", "Banking Liabilities",
+                                 "FDI Inward", "FDI Outward (derived)",
+                                 "Portfolio Assets", "Portfolio Liabilities (derived)",
                                  "Exports", "Imports"), 3),
                            paste0(c(rep("xV", 8),
                                     rep("xI", 8),
@@ -725,13 +736,27 @@ vars.all <- paste("Claims", "Liabilities",
                   "PIA", "PIdL",
                   "Export", "Import", sep = "|")
 
+# .... With NAs labelled, disaggregated ####
 for (m in 1:length(measure)){
   for (r in 1:length(reporters)){
-    g <- ggplot(yraverage %>% filter(str_detect(variable, paste0("^",measure[m])) & 
-                                       str_detect(variable, vars.all) &
-                                       reporter == reporters[r]),
-                aes(x = fct_rev(variable), y = value, fill = (variable))) +
-      geom_col() + coord_flip() +
+    dat <- countryrisk %>% filter(str_detect(variable, paste0("^",measure[m])) & 
+                                    str_detect(variable, vars.all) &
+                                    reporter == reporters[r])
+    na.coord <- as.character(dat[which(is.na(dat$value)), 4])
+    g <- ggplot(dat,
+                aes(x = fct_rev(variable), y = value, 
+                    fill = variable)) +
+      geom_col() + 
+      coord_flip() +
+      geom_text(aes(label = ifelse(startsWith(as.character(dat$variable), "xI"),
+                                   round(value, 3), 
+                                   round(value))),
+                size = 4, hjust = 0.5, fontface = "bold",
+                nudge_y = ifelse(startsWith(as.character(dat$variable), "xV"),
+                                 0.07*max(dat$value, na.rm = T),
+                                 ifelse(startsWith(as.character(dat$variable), "xI"),
+                                        0.1*max(dat$value, na.rm = T),
+                                        0.05*max(dat$value, na.rm = T)))) +
       ylab(paste0(measure.label[m], " Score")) + 
       scale_fill_manual(values = col.labels.all,
                         labels = var.labels.all) + 
@@ -739,9 +764,91 @@ for (m in 1:length(measure)){
       scale_x_discrete(labels = var.labels.all) +
       theme(axis.title.y = element_blank()) + 
       guides(fill = FALSE) +
-      ggtitle(reporters[r]) 
+      ggtitle(reporters[r])
+    if (!is_empty(na.coord)) {
+      g <- g + annotate("text", x = na.coord, y = 0,
+                        label = "NA", fontface = "bold")
+    }
     ggsave(g,
-           file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/Country risk profiles/", measure[m], "_", reporters[r],".pdf"),
+           file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/Country risk profiles/Disaggregated/", measure[m], "_", reporters.string[r],".png"),
+           width = 6, height = 5, units = "in")
+  }
+}
+
+# .... Without NAs labelled, disaggregated ####
+for (m in 1:length(measure)){
+  for (r in 1:length(reporters)){
+    g <- ggplot(yraverage %>% filter(str_detect(variable, paste0("^",measure[m])) &
+                                       str_detect(variable, vars.all) &
+                                       reporter == reporters[r]),
+                aes(x = fct_rev(variable), y = value, fill = (variable))) +
+      geom_col() + coord_flip() +
+      ylab(paste0(measure.label[m], " Score")) +
+      scale_fill_manual(values = col.labels.all,
+                        labels = var.labels.all) +
+      scale_y_continuous(labels = comma) +
+      scale_x_discrete(labels = var.labels.all) +
+      theme(axis.title.y = element_blank()) +
+      guides(fill = FALSE) +
+      ggtitle(reporters[r])
+    ggsave(g,
+           file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/Country risk profiles/Disaggregated/No labels/", measure[m], "_", reporters.string[r],".pdf"),
+           width = 6, height = 5, units = "in")
+  }
+}
+
+# .... With NAs labelled, aggregated ####
+var.labels.all <- setNames(rep(c("Banking",
+                                 "Direct Investment",
+                                 "Portfolio Investment",
+                                 "Trade"), 3),
+                           paste0(c(rep("xV", 4),
+                                    rep("xI", 4),
+                                    rep("xE", 4)), 
+                                  rep(c("Banking",
+                                        "DirectInv",
+                                        "PortInv",
+                                        "Trade"), 3)))
+
+vars.all <- paste("Banking",
+                  "DirectInv",
+                  "PortInv",
+                  "Trade", sep = "|")
+
+for (m in 1:length(measure)){
+  for (r in 1:length(reporters)){
+    dat <- countryrisk %>% filter(str_detect(variable, paste0("^",measure[m])) & 
+                                    str_detect(variable, vars.all) &
+                                    reporter == reporters[r])
+    na.coord <- as.character(dat[which(is.na(dat$value)), 4])
+    g <- ggplot(dat,
+                aes(x = fct_rev(variable), y = value, 
+                    fill = variable)) +
+      geom_col() + 
+      coord_flip() +
+      geom_text(aes(label = ifelse(startsWith(as.character(dat$variable), "xI"),
+                                   round(value, 3), 
+                                   round(value))),
+                size = 4, hjust = 0.5, fontface = "bold",
+                nudge_y = ifelse(startsWith(as.character(dat$variable), "xV"),
+                                 0.07*max(dat$value, na.rm = T),
+                                 ifelse(startsWith(as.character(dat$variable), "xI"),
+                                        0.1*max(dat$value, na.rm = T),
+                                        0.05*max(dat$value, na.rm = T)))) +
+      ylab(paste0(measure.label[m], " Score")) + 
+      scale_fill_manual(values = rev(wes_palette("Chevalier1")),
+                        labels = var.labels.all) + 
+      scale_y_continuous(labels = comma) +
+      scale_x_discrete(labels = var.labels.all) +
+      theme(axis.title.y = element_blank()) + 
+      guides(fill = FALSE) +
+      ggtitle(reporters[r])
+    if (!is_empty(na.coord)) {
+      g <- g + annotate("text", x = na.coord, y = 0,
+                        label = "NA", fontface = "bold")
+    }
+    ggsave(g,
+           file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/Country risk profiles/Aggregated/", measure[m], "_", reporters.string[r],".png"),
            width = 6, height = 5, units = "in")
   }
 }
@@ -1334,10 +1441,11 @@ write.csv(yraverage_wide, "Results/VIE averages_for income groups_Secrecy Score_
 rm(cols, f, flowstock, g, i, incomegroup, incomegroup.label,
    m, measure, measures, wrmeasure, wimeasure, measure.label, r, region, region.label,
    var.labels, vars,
+   vars.all, var.labels.all, col.labels.all, na.coord, reporters, reporters.string,
    af, am, as, eu, oc, nr, HIC, UMC, LMC, LIC, ni,
    afno, amno, asno, euno, ocno, nrno, HICno, UMCno, LMCno, LICno, nino,
    pctiles, choose.cut, regionno, incomegroupno)
-rm(yraverage, conduits, yraverage_wide)
+rm(yraverage, conduits, yraverage_wide, countryrisk, dat)
 
 
 
@@ -1602,17 +1710,7 @@ cols$Trade <- c("#FAD510", "#800080")
 graph <- melt(panelSJ,
               id.vars = c("id", "reporter.ISO", "partner.ISO", "year",
                           "reporter", "partner", "rRegion", "rIncome", "pRegion", "pIncome"),
-              measure.vars = c("Claims", "Liabilities",
-                               "DIdI", "DII", "DIdO", "DIO", 
-                               "PIA", "PIL", "PIdL",
-                               "Export", "Import", "ReExport", "ReImport",
-                               "rSecrecyScore", "pSecrecyScore", "rSS", "pSS",
-                               "rGDP", "rGNIPerCap", "pGDP", "pGNIPerCap",
-                               "TotClaims", "TotLiabilities",
-                               "TotDIdI", "TotDII", "TotDIdO", "TotDIO", 
-                               "TotPIA", "TotPIL", "TotPIdL",
-                               "TotExport", "TotImport",
-                               "VClaims", "VLiabilities",
+              measure.vars = c("VClaims", "VLiabilities",
                                "VDIdI", "VDII", "VDIdO", "VDIO",
                                "VPIA", "VPIL", "VPIdL",
                                "VExport", "VImport",
@@ -1658,10 +1756,11 @@ graph <- melt(panelSJ,
                                "wiEDIdI", "wiEDII", "wiEDIdO", "wiEDIO",
                                "wiEPIA", "wiEPIL", "wiEPIdL",
                                "wiEExport", "wiEImport"))
-
-graph <- subset(graph, !is.na(value))
+graph <- subset(graph, !is.na(value) & !is.infinite(value))
 
 choose.year <- 2015
+
+graph <- subset(graph, year == choose.year)
 
 af <- subset(graph, rRegion == "Africa")
 am <- subset(graph, rRegion == "Americas")
@@ -1675,6 +1774,90 @@ UMC <- subset(graph, rIncome == "UMC")
 LMC <- subset(graph, rIncome == "LMC")
 LIC <- subset(graph, rIncome == "LIC")
 ni <- subset(graph, rIncome == "")
+
+
+# .. Plot country-risk graphs ####
+
+# .... With NAs labelled ####
+
+countryrisk <- graph %>%
+  distinct(reporter, variable, .keep_all = TRUE) %>%
+  select(reporter, variable, value)
+
+countryrisk <- spread(countryrisk, variable, value) %>%
+  select(reporter, starts_with("V"), starts_with("I"), starts_with("E"))
+countryrisk <- gather(countryrisk, variable, value, 2:ncol(countryrisk),
+                      factor_key = TRUE)
+
+reporters <- unique(panelSJ$reporter)
+reporters.string <- iconv(reporters, from = "UTF-8", to = "ASCII//TRANSLIT")
+
+var.labels.all <- setNames(rep(c("Banking Claims", "Banking Liabilities",
+                                 "FDI Inward", "FDI Outward (derived)",
+                                 "Portfolio Assets", "Portfolio Liabilities (derived)",
+                                 "Exports", "Imports"), 3),
+                           paste0(c(rep("V", 8),
+                                    rep("I", 8),
+                                    rep("E", 8)), 
+                                  rep(c("Claims", "Liabilities",
+                                        "DII", "DIdO",
+                                        "PIA", "PIdL",
+                                        "Export", "Import"), 3)))
+
+col.labels.all <- setNames(rep(c("#C93312", "#899DA4", 
+                                 "#FD6467", "#7294D4",
+                                 "#F98400", "#00A08A",
+                                 "#800080", "#FAD510"), 3),
+                           paste0(c(rep("V", 8),
+                                    rep("I", 8),
+                                    rep("E", 8)), 
+                                  rep(c("Claims", "Liabilities",
+                                        "DII", "DIdO",
+                                        "PIA", "PIdL",
+                                        "Export", "Import"), 3)))
+
+vars.all <- paste("Claims", "Liabilities",
+                  "DII", "DIdO",
+                  "PIA", "PIdL",
+                  "Export", "Import", sep = "|")
+
+for (m in 1:length(measure)){
+  for (r in 1:length(reporters)){
+    dat <- countryrisk %>% filter(str_detect(variable, paste0("^",measure[m])) & 
+                                    str_detect(variable, vars.all) &
+                                    reporter == reporters[r])
+    na.coord <- as.character(dat[which(is.na(dat$value)), 2])
+    g <- ggplot(dat,
+                aes(x = fct_rev(variable), y = value, 
+                    fill = variable)) +
+      geom_col() + 
+      coord_flip() +
+      geom_text(aes(label = ifelse(startsWith(as.character(dat$variable), "I"),
+                                   round(value, 3), 
+                                   round(value))),
+                size = 4, hjust = 0.5, fontface = "bold",
+                nudge_y = ifelse(startsWith(as.character(dat$variable), "V"),
+                                 0.07*max(dat$value, na.rm = T),
+                                 ifelse(startsWith(as.character(dat$variable), "I"),
+                                        0.1*max(dat$value, na.rm = T),
+                                        0.05*max(dat$value, na.rm = T)))) +
+      ylab(paste0(measure.label[m], " Score")) + 
+      scale_fill_manual(values = col.labels.all,
+                        labels = var.labels.all) + 
+      scale_y_continuous(labels = comma) +
+      scale_x_discrete(labels = var.labels.all) +
+      theme(axis.title.y = element_blank()) + 
+      guides(fill = FALSE) +
+      ggtitle(paste0(reporters[r], " in ", choose.year))
+    if (!is_empty(na.coord)) {
+      g <- g + annotate("text", x = na.coord, y = 0,
+                        label = "NA", fontface = "bold")
+    }
+    ggsave(g,
+           file = paste0("Figures/Overall Secrecy Score/Jurisdiction scores/Yearly snapshots/Country risk profiles/Disaggregated/", measure[m], "_", reporters.string[r], "_", choose.year,".png"),
+           width = 6, height = 5, units = "in")
+  }
+}
 
 
 # .. Plot jurisdiction-level scores ####
@@ -1775,8 +1958,9 @@ for (m in 1:length(wimeasure)){
 rm(choose.year, cols, f, flowstock, g, i, incomegroup, incomegroup.label,
    m, measure, wrmeasure, wimeasure, measure.label, r, region, region.label,
    var.labels, vars,
-   af, am, as, eu, oc, nr, HIC, UMC, LMC, LIC, ni)
-rm(graph)
+   af, am, as, eu, oc, nr, HIC, UMC, LMC, LIC, ni,
+   reporters, reporters.string, var.labels.all, col.labels.all, vars.all, na.coord)
+rm(graph, countryrisk, dat)
 
 
 
