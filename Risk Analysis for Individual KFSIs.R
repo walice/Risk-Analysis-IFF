@@ -1,5 +1,6 @@
 # Risk Analysis for Individual KFSIs
 # Alice Lepissier
+# alice.lepissier@gmail.com
 
 ## ## ## ## ## ## ## ## ## ## ##
 # INDEX                     ####

@@ -1,5 +1,6 @@
 # Data Preparation
 # Alice Lepissier
+# alice.lepissier@gmail.com
 
 ## ## ## ## ## ## ## ## ## ## ##
 # INDEX                     ####
@@ -71,17 +72,17 @@ LBS <- subset(LBS, select = -c(Type.of.instruments, Counterparty.sector))
 LBS <- LBS[, -grep(number_range(1977,2007), names(LBS))]
 LBS[LBS == "\\" | LBS == "-"] <- NA
 LBS[4:44] <- lapply(LBS[4:44], function(x) as.numeric(as.character(x)))
-LBS$yr2008 <- rowSums(LBS[grep("2008", names(LBS))], na.rm = T)
-LBS$yr2009 <- rowSums(LBS[grep("2009", names(LBS))], na.rm = T)
-LBS$yr2010 <- rowSums(LBS[grep("2010", names(LBS))], na.rm = T)
-LBS$yr2011 <- rowSums(LBS[grep("2011", names(LBS))], na.rm = T)
-LBS$yr2012 <- rowSums(LBS[grep("2012", names(LBS))], na.rm = T)
-LBS$yr2013 <- rowSums(LBS[grep("2013", names(LBS))], na.rm = T)
-LBS$yr2014 <- rowSums(LBS[grep("2014", names(LBS))], na.rm = T)
-LBS$yr2015 <- rowSums(LBS[grep("2015", names(LBS))], na.rm = T)
-LBS$yr2016 <- rowSums(LBS[grep("2016", names(LBS))], na.rm = T)
-LBS$yr2017 <- rowSums(LBS[grep("2017", names(LBS))], na.rm = T)
-LBS$yr2018 <- rowSums(LBS[grep("2018", names(LBS))], na.rm = T)
+LBS$yr2008 <- LBS[, "X31.12.2008"]
+LBS$yr2009 <- LBS[, "X31.12.2009"]
+LBS$yr2010 <- LBS[, "X31.12.2010"]
+LBS$yr2011 <- LBS[, "X31.12.2011"]
+LBS$yr2012 <- LBS[, "X31.12.2012"]
+LBS$yr2013 <- LBS[, "X31.12.2013"]
+LBS$yr2014 <- LBS[, "X31.12.2014"]
+LBS$yr2015 <- LBS[, "X31.12.2015"]
+LBS$yr2016 <- LBS[, "X31.12.2016"]
+LBS$yr2017 <- LBS[, "X31.12.2017"]
+LBS$yr2018 <- LBS[, "X31.03.2018"]
 LBS[grep("X", names(LBS))] <- NULL
 
 LBS$Balance.sheet.position <- substring(LBS$Balance.sheet.position, 3)

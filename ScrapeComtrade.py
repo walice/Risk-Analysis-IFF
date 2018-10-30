@@ -1,5 +1,6 @@
 """
 Alice Lepissier
+alice.lepissier@gmail.com
 July 2018
 Risk-based IFF
 Scrape the Comtrade website for data

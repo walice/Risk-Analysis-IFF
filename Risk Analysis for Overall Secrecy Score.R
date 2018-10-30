@@ -1,5 +1,6 @@
 # Risk Analysis for Overall Secrecy Score
 # Alice Lepissier
+# alice.lepissier@gmail.com
 
 ## ## ## ## ## ## ## ## ## ## ##
 # INDEX                     ####
@@ -152,7 +153,8 @@ names(panelSJ) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ))
 panelSJ_Share <- panelSJ %>%
   group_by(reporter.ISO, year) %>%
   mutate_at(.vars = vars,
-            .fun = funs(VShare = (abs(.) * pSecrecyScore)/sum(abs(.) * pSecrecyScore, na.rm = T))) %>%
+            .fun = funs(VShare = (abs(.) * pSecrecyScore)/sum(abs(.) * pSecrecyScore, na.rm = T),
+                        VShareNumerator = abs(.) * pSecrecyScore)) %>%
   ungroup()
 names(panelSJ_Share) <- sub("^(.*)_(.*)$", "\\2\\1", names(panelSJ_Share))
 
@@ -166,7 +168,7 @@ names(panelSJ_Share) <- gsub("VShareSumVShare", "VShareSum", names(panelSJ_Share
 
 grep("VShareSum", names(panelSJ_Share))
 for (c in 83:93){
-  z <- which(panelSJ_Share[, c+22] == 0)
+  z <- which(panelSJ_Share[, c+33] == 0)
   zeroTot <- panelSJ_Share[z, ]
   print(unique(zeroTot[, c]))
 }
@@ -188,7 +190,8 @@ panelSJ_Share <- panelSJ_Share %>%
          PIA, PIdL,
          Export, Import,
          VClaims:VImport,
-         VShareClaims:VShareImport) %>%
+         VShareClaims:VShareImport,
+         VShareNumeratorClaims:VShareNumeratorImport) %>%
   arrange(id)
 
 Claims <- panelSJ_Share %>% 
@@ -197,7 +200,8 @@ Claims <- panelSJ_Share %>%
          pSecrecyScore,
          Claims,
          VClaims,
-         VShareClaims) %>%
+         VShareClaims,
+         VShareNumeratorClaims) %>%
   arrange(reporter, year, -VShareClaims)
 write.csv(Claims, "Results/Vulnerability shares/Claims.csv", row.names = FALSE)
 
@@ -207,7 +211,8 @@ Liabilities <- panelSJ_Share %>%
          pSecrecyScore,
          Liabilities,
          VLiabilities,
-         VShareLiabilities) %>%
+         VShareLiabilities,
+         VShareNumeratorLiabilities) %>%
   arrange(reporter, year, -VShareLiabilities)
 write.csv(Liabilities, "Results/Vulnerability shares/Liabilities.csv", row.names = FALSE)
 
@@ -217,7 +222,8 @@ DII <- panelSJ_Share %>%
          pSecrecyScore,
          DII,
          VDII,
-         VShareDII) %>%
+         VShareDII,
+         VShareNumeratorDII) %>%
   arrange(reporter, year, -VShareDII)
 write.csv(DII, "Results/Vulnerability shares/DII.csv", row.names = FALSE)
 
@@ -227,7 +233,8 @@ DIdO <- panelSJ_Share %>%
          pSecrecyScore,
          DIdO,
          VDIdO,
-         VShareDIdO) %>%
+         VShareDIdO,
+         VShareNumeratorDIdO) %>%
   arrange(reporter, year, -VShareDIdO)
 write.csv(DIdO, "Results/Vulnerability shares/DIdO.csv", row.names = FALSE)
 
@@ -237,7 +244,8 @@ PIA <- panelSJ_Share %>%
          pSecrecyScore,
          PIA,
          VPIA,
-         VSharePIA) %>%
+         VSharePIA,
+         VShareNumeratorPIA) %>%
   arrange(reporter, year, -VSharePIA)
 write.csv(PIA, "Results/Vulnerability shares/PIA.csv", row.names = FALSE)
 
@@ -247,7 +255,8 @@ PIdL <- panelSJ_Share %>%
          pSecrecyScore,
          PIdL,
          VPIdL,
-         VSharePIdL) %>%
+         VSharePIdL,
+         VShareNumeratorPIdL) %>%
   arrange(reporter, year, -VSharePIdL)
 write.csv(PIdL, "Results/Vulnerability shares/PIdL.csv", row.names = FALSE)
 
@@ -257,7 +266,8 @@ Export <- panelSJ_Share %>%
          pSecrecyScore,
          Export,
          VExport,
-         VShareExport) %>%
+         VShareExport,
+         VShareNumeratorExport) %>%
   arrange(reporter, year, -VShareExport)
 write.csv(Export, "Results/Vulnerability shares/Export.csv", row.names = FALSE)
 
@@ -267,7 +277,8 @@ Import <- panelSJ_Share %>%
          pSecrecyScore,
          Import,
          VImport,
-         VShareImport) %>%
+         VShareImport,
+         VShareNumeratorImport) %>%
   arrange(reporter, year, -VShareImport)
 write.csv(Import, "Results/Vulnerability shares/Import.csv", row.names = FALSE)
 
