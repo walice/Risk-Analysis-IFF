@@ -7,7 +7,7 @@
 ## ## ## ## ## ## ## ## ## ## ##
 # Codes Masterlist
 # LBS Data
-# .. Sum quarterly data to yearly
+# .. Keep last quarter of data
 # .. Merge reporter codes
 # .. Merge partner codes
 # .. Convert years to long
@@ -68,7 +68,7 @@ LBS <- subset(LBS, Type.of.instruments == "A:All instruments")
 LBS <- subset(LBS, select = -c(Type.of.instruments, Counterparty.sector))
 
 
-# .. Sum quarterly data to yearly ####
+# .. Keep last quarter of data ####
 LBS <- LBS[, -grep(number_range(1977,2007), names(LBS))]
 LBS[LBS == "\\" | LBS == "-"] <- NA
 LBS[4:44] <- lapply(LBS[4:44], function(x) as.numeric(as.character(x)))
