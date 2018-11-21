@@ -1547,8 +1547,7 @@ for (m in 1:length(measure)){
                                             variable == paste0("wr", measure[m], "Trade")),
                 aes(x = year, y = value, color = variable)) +
       geom_line(size = 1.5) +
-      ggtitle(paste0(measure.label[m], " over time in ", region.label[r]),
-              subtitle = "Overall Secrecy Score") +
+      ggtitle(paste0(measure.label[m], " over time in ", region.label[r])) +
       xlab("Year") + ylab(paste0(measure.label[m], " Score")) +
       scale_color_manual(labels = c("Banking Positions","Direct Investment",
                                     "Portfolio Investment", "Trade"),
@@ -1653,8 +1652,7 @@ for (m in 1:length(measure)){
                                                  variable == paste0("wi", measure[m], "Trade")),
                 aes(x = year, y = value, color = variable)) + 
       geom_line(size = 1.5) +
-      ggtitle(paste0(measure.label[m], " over time in ", incomegroup.label[i]),
-              subtitle = "Overall Secrecy Score") + 
+      ggtitle(paste0(measure.label[m], " over time in ", incomegroup.label[i])) + 
       xlab("Year") + ylab(paste0(measure.label[m], " Score")) +
       scale_color_manual(labels = c("Banking Positions","Direct Investment",
                                     "Portfolio Investment", "Trade"),
