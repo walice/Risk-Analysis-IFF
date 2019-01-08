@@ -136,6 +136,21 @@ LBS <- LBS[, c("id", "reporter", "reporter.ISO",
                "Claims", "Liabilities")]
 LBS <- LBS[order(LBS$id), ]
 rm(noISO)
+row.names(LBS) <- NULL
+
+
+# .. Create mirror Claims variable ####
+LBS_mirror <- LBS %>% select(-c(id, Claims))
+LBS_mirror <- LBS_mirror %>% rename(dClaims = Liabilities)
+LBS_mirror$id <- paste(LBS$partner.ISO, LBS$reporter.ISO, LBS$year, sep = "_")
+LBS <- full_join(LBS, LBS_mirror,
+                 by = c("id" = "id",
+                        "reporter" = "partner",
+                        "reporter.ISO" = "partner.ISO",
+                        "partner.ISO" = "reporter.ISO",
+                        "partner" = "reporter",
+                        "year" = "year"))
+rm(LBS_mirror)
 
 
 
@@ -300,7 +315,7 @@ colnames(comtrade)[colnames(comtrade) == "Re-Import"] <- "ReImport"
 ## ## ## ## ## ## ## ## ## ## ##
 
 panel <- merge(LBS[, c("id",
-                       "Claims", "Liabilities")],
+                       "Claims", "Liabilities", "dClaims")],
                CDIS[, c("id",
                         "DIdI", "DII", "DIdO", "DIO")],
                by = c("id"),
@@ -323,10 +338,10 @@ panel <- panel[order(panel$id), ]
 
 # .. Complete cases ####
 allmissing <- which(rowSums(is.na(panel)) == ncol(panel)-1)
-# None
+panel <- panel[-c(allmissing),]
 rm(allmissing)
 subset(panel, 
-       Claims == 0 & Liabilities == 0,
+       Claims == 0 & Liabilities == 0 & dClaims == 0 &
        DIdI == 0 & DII == 0 & DIdO == 0 & DIO == 0 &
        PIA == 0 & PIL == 0 & PIdL == 0 &
        Export == 0 & Import == 0 & ReExport == 0 & ReImport == 0)
@@ -587,12 +602,12 @@ panel <- panel %>%
 save(panel, file = "Data/panel.RData")
 write.csv(panel, "Data/panel.csv", row.names = FALSE)
 
-Missing <- apply(subset(panel, select = c(Claims, Liabilities,
+Missing <- apply(subset(panel, select = c(Claims, Liabilities, dClaims,
                                             DII, DIdO,
                                             PIA, PIdL,
                                             Export, Import)), MARGIN = 1, function(x) sum(is.na(x)))
 coverage <- cbind(subset(panel, select = c(id:pIncome,
-                                           Claims, Liabilities,
+                                           Claims, Liabilities, dClaims,
                                            DII, DIdO,
                                            PIA, PIdL,
                                            Export, Import)),

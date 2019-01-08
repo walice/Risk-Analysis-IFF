@@ -88,8 +88,8 @@
 # PREAMBLE                  ####
 ## ## ## ## ## ## ## ## ## ## ##
 
-#setwd("C:/cloudstorage/googledrive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/") # Alice work
-setwd("D:/Google Drive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/") # Alice laptop
+setwd("C:/cloudstorage/googledrive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/") # Alice work
+#setwd("D:/Google Drive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/") # Alice laptop
 library(plyr) # Must load before dplyr
 library(dplyr)
 library(ggplot2)
@@ -121,7 +121,7 @@ load("Data/panel.RData")
 
 panelSJ <- subset(panel, pSS != FALSE)
 
-vars <- c("Claims", "Liabilities",
+vars <- c("dClaims", "Liabilities",
           "DIdI", "DII", "DIdO", "DIO",
           "PIA", "PIL", "PIdL",
           "Export", "Import")
@@ -177,7 +177,7 @@ for (c in 83:93){
 # We can convert them back to NAs.
 # na.rm = T is needed when summing otherwise a single NA value will return NAs (even though there may be valid other values).
 
-missing <- apply(subset(panelSJ, select = c(Claims, Liabilities,
+missing <- apply(subset(panelSJ, select = c(dClaims, Liabilities,
                                             DII, DIdO, 
                                             PIA, PIdL,
                                             Export, Import)), MARGIN = 1, function(x) sum(is.na(x))) == 8
@@ -185,25 +185,25 @@ panelSJ_Share <- panelSJ_Share[which(missing == FALSE),]
 panelSJ_Share <- panelSJ_Share %>%
   select(id:pIncome,
          pSecrecyScore,
-         Claims, Liabilities,
+         dClaims, Liabilities,
          DII, DIdO, 
          PIA, PIdL,
          Export, Import,
-         VClaims:VImport,
-         VShareClaims:VShareImport,
-         VShareNumeratorClaims:VShareNumeratorImport) %>%
+         VdClaims:VImport,
+         VSharedClaims:VShareImport,
+         VShareNumeratordClaims:VShareNumeratorImport) %>%
   arrange(id)
 
-Claims <- panelSJ_Share %>% 
-  filter(!is.na(Claims)) %>%
+dClaims <- panelSJ_Share %>% 
+  filter(!is.na(dClaims)) %>%
   select(id:pIncome,
          pSecrecyScore,
-         Claims,
-         VClaims,
-         VShareClaims,
-         VShareNumeratorClaims) %>%
-  arrange(reporter, year, -VShareClaims)
-write.csv(Claims, "Results/Vulnerability shares/Claims.csv", row.names = FALSE)
+         dClaims,
+         VdClaims,
+         VSharedClaims,
+         VShareNumeratordClaims) %>%
+  arrange(reporter, year, -VSharedClaims)
+write.csv(dClaims, "Results/Vulnerability shares/dClaims.csv", row.names = FALSE)
 
 Liabilities <- panelSJ_Share %>% 
   filter(!is.na(Liabilities)) %>%
@@ -283,7 +283,7 @@ Import <- panelSJ_Share %>%
 write.csv(Import, "Results/Vulnerability shares/Import.csv", row.names = FALSE)
 
 rm(zeroTot, c, z, missing,
-   Claims, Liabilities, DII, DIdO, PIA, PIdL, Export, Import,
+   dClaims, Liabilities, DII, DIdO, PIA, PIdL, Export, Import,
    panelSJ_Share)
 
 
@@ -560,13 +560,13 @@ incomegroup.label <- c("HIC", "UMC", "LMC", "LIC", "No Income Group")
 flowstock <- c("Banking Positions", "Direct Investment", "Portfolio Investment", "Trade")
 
 vars <- list()
-vars$BankingPositions <- c("Claims", "Liabilities")
+vars$BankingPositions <- c("dClaims", "Liabilities")
 vars$DirectInvestment <- c("DII", "DIdO")
 vars$PortInvestment <- c("PIA", "PIdL")
 vars$Trade <- c("Export", "Import")
 
 var.labels <- list()
-var.labels$BankingPositions <- c("Claims", "Liabilities")
+var.labels$BankingPositions <- c("Claims (derived)", "Liabilities")
 var.labels$DirectInvestment <- c("Inward", "Outward (derived)")
 var.labels$PortInvestment <- c("Assets", "Liabilities (derived)")
 var.labels$Trade <- c("Exports", "Imports")
@@ -579,15 +579,15 @@ cols$Trade <- c("#FAD510", "#800080")
 
 
 # .. Calculate average measures across years per reporter ####
-measures <- c("VClaims", "VLiabilities",
+measures <- c("VdClaims", "VLiabilities",
               "VDIdI", "VDII", "VDIdO", "VDIO",
               "VPIA", "VPIL", "VPIdL",
               "VExport", "VImport",
-              "IClaims", "ILiabilities",
+              "IdClaims", "ILiabilities",
               "IDIdI", "IDII", "IDIdO", "IDIO",
               "IPIA", "IPIL", "IPIdL",
               "IExport", "IImport",
-              "EClaims", "ELiabilities",
+              "EdClaims", "ELiabilities",
               "EDIdI", "EDII", "EDIdO", "EDIO",
               "EPIA", "EPIL", "EPIdL",
               "EExport", "EImport")
@@ -605,7 +605,7 @@ yraverage <- yraverage %>%
   distinct(reporter, .keep_all = TRUE)
 
 yraverage$xVBanking <- rowMeans(subset(yraverage,
-                                       select = c(xVClaims, xVLiabilities)),
+                                       select = c(xVdClaims, xVLiabilities)),
                                 na.rm = T)
 yraverage$xVDirectInv <- rowMeans(subset(yraverage,
                                          select = c(xVDII, xVDIdO)),
@@ -617,7 +617,7 @@ yraverage$xVTrade <- rowMeans(subset(yraverage,
                                      select = c(xVExport, xVImport)),
                               na.rm = T)
 yraverage$xIBanking <- rowMeans(subset(yraverage,
-                                       select = c(xIClaims, xILiabilities)),
+                                       select = c(xIdClaims, xILiabilities)),
                                 na.rm = T)
 yraverage$xIDirectInv <- rowMeans(subset(yraverage,
                                          select = c(xIDII, xIDIdO)),
@@ -629,7 +629,7 @@ yraverage$xITrade <- rowMeans(subset(yraverage,
                                      select = c(xIExport, xIImport)),
                               na.rm = T)
 yraverage$xEBanking <- rowMeans(subset(yraverage,
-                                       select = c(xEClaims, xELiabilities)),
+                                       select = c(xEdClaims, xELiabilities)),
                                 na.rm = T)
 yraverage$xEDirectInv <- rowMeans(subset(yraverage,
                                          select = c(xEDII, xEDIdO)),
@@ -651,15 +651,15 @@ pctiles$variable <- row.names(pctiles)
 
 yraverage <- melt(yraverage, 
                   id.vars = c("reporter", "rRegion", "rIncome"),
-                  measure.vars = c("xVClaims", "xVLiabilities",
+                  measure.vars = c("xVdClaims", "xVLiabilities",
                                    "xVDIdI", "xVDII", "xVDIdO", "xVDIO", 
                                    "xVPIA", "xVPIL", "xVPIdL", 
                                    "xVExport", "xVImport",
-                                   "xIClaims", "xILiabilities",
+                                   "xIdClaims", "xILiabilities",
                                    "xIDIdI", "xIDII", "xIDIdO", "xIDIO",
                                    "xIPIA", "xIPIL", "xIPIdL",
                                    "xIExport", "xIImport",
-                                   "xEClaims", "xELiabilities",
+                                   "xEdClaims", "xELiabilities",
                                    "xEDIdI", "xEDII", "xEDIdO", "xEDIO", 
                                    "xEPIA", "xEPIL", "xEPIdL",
                                    "xEExport", "xEImport",
@@ -718,14 +718,14 @@ countryrisk <- gather(countryrisk, variable, value, 4:ncol(countryrisk),
 reporters <- unique(panelSJ$reporter)
 reporters.string <- iconv(reporters, from = "UTF-8", to = "ASCII//TRANSLIT")
 
-var.labels.all <- setNames(rep(c("Banking Claims", "Banking Liabilities",
+var.labels.all <- setNames(rep(c("Banking Claims (derived)", "Banking Liabilities",
                                  "FDI Inward", "FDI Outward (derived)",
                                  "Portfolio Assets", "Portfolio Liabilities (derived)",
                                  "Exports", "Imports"), 3),
                            paste0(c(rep("xV", 8),
                                     rep("xI", 8),
                                     rep("xE", 8)), 
-                                  rep(c("Claims", "Liabilities",
+                                  rep(c("dClaims", "Liabilities",
                                         "DII", "DIdO",
                                         "PIA", "PIdL",
                                         "Export", "Import"), 3)))
@@ -737,12 +737,12 @@ col.labels.all <- setNames(rep(c("#C93312", "#899DA4",
                            paste0(c(rep("xV", 8),
                                     rep("xI", 8),
                                     rep("xE", 8)), 
-                                  rep(c("Claims", "Liabilities",
+                                  rep(c("dClaims", "Liabilities",
                                         "DII", "DIdO",
                                         "PIA", "PIdL",
                                         "Export", "Import"), 3)))
 
-vars.all <- paste("Claims", "Liabilities",
+vars.all <- paste("dClaims", "Liabilities",
                   "DII", "DIdO",
                   "PIA", "PIdL",
                   "Export", "Import", sep = "|")
@@ -1113,15 +1113,15 @@ write.csv(yraverage_wide, "Results/VIE averages_for jurisdictions_Secrecy Score_
 
 
 # .. Calculate average measures across years per region ####
-measures <- c("wrVClaims", "wrVLiabilities",
+measures <- c("wrVdClaims", "wrVLiabilities",
               "wrVDIdI", "wrVDII", "wrVDIdO", "wrVDIO",
               "wrVPIA", "wrVPIL", "wrVPIdL",
               "wrVExport", "wrVImport",
-              "wrIClaims", "wrILiabilities",
+              "wrIdClaims", "wrILiabilities",
               "wrIDIdI", "wrIDII", "wrIDIdO", "wrIDIO",
               "wrIPIA", "wrIPIL", "wrIPIdL",
               "wrIExport", "wrIImport",
-              "wrEClaims", "wrELiabilities",
+              "wrEdClaims", "wrELiabilities",
               "wrEDIdI", "wrEDII", "wrEDIdO", "wrEDIO",
               "wrEPIA", "wrEPIL", "wrEPIdL",
               "wrEExport", "wrEImport")
@@ -1139,7 +1139,7 @@ yraverage <- yraverage %>%
   distinct(rRegion, .keep_all = TRUE)
 
 yraverage$xwrVBanking <- rowMeans(subset(yraverage,
-                                         select = c(xwrVClaims, xwrVLiabilities)),
+                                         select = c(xwrVdClaims, xwrVLiabilities)),
                                   na.rm = T)
 yraverage$xwrVDirectInv <- rowMeans(subset(yraverage,
                                            select = c(xwrVDII, xwrVDIdO)),
@@ -1151,7 +1151,7 @@ yraverage$xwrVTrade <- rowMeans(subset(yraverage,
                                        select = c(xwrVExport, xwrVImport)),
                                 na.rm = T)
 yraverage$xwrIBanking <- rowMeans(subset(yraverage,
-                                         select = c(xwrIClaims, xwrILiabilities)),
+                                         select = c(xwrIdClaims, xwrILiabilities)),
                                   na.rm = T)
 yraverage$xwrIDirectInv <- rowMeans(subset(yraverage,
                                            select = c(xwrIDII, xwrIDIdO)),
@@ -1163,7 +1163,7 @@ yraverage$xwrITrade <- rowMeans(subset(yraverage,
                                        select = c(xwrIExport, xwrIImport)),
                                 na.rm = T)
 yraverage$xwrEBanking <- rowMeans(subset(yraverage,
-                                         select = c(xwrEClaims, xwrELiabilities)),
+                                         select = c(xwrEdClaims, xwrELiabilities)),
                                   na.rm = T)
 yraverage$xwrEDirectInv <- rowMeans(subset(yraverage,
                                            select = c(xwrEDII, xwrEDIdO)),
@@ -1177,15 +1177,15 @@ yraverage$xwrETrade <- rowMeans(subset(yraverage,
 
 yraverage <- melt(yraverage, 
                   id.vars = c("rRegion"),
-                  measure.vars = c("xwrVClaims", "xwrVLiabilities",
+                  measure.vars = c("xwrVdClaims", "xwrVLiabilities",
                                    "xwrVDIdI", "xwrVDII", "xwrVDIdO", "xwrVDIO", 
                                    "xwrVPIA", "xwrVPIL", "xwrVPIdL", 
                                    "xwrVExport", "xwrVImport",
-                                   "xwrIClaims", "xwrILiabilities",
+                                   "xwrIdClaims", "xwrILiabilities",
                                    "xwrIDIdI", "xwrIDII", "xwrIDIdO", "xwrIDIO",
                                    "xwrIPIA", "xwrIPIL", "xwrIPIdL",
                                    "xwrIExport", "xwrIImport",
-                                   "xwrEClaims", "xwrELiabilities",
+                                   "xwrEdClaims", "xwrELiabilities",
                                    "xwrEDIdI", "xwrEDII", "xwrEDIdO", "xwrEDIO", 
                                    "xwrEPIA", "xwrEPIL", "xwrEPIdL",
                                    "xwrEExport", "xwrEImport",
@@ -1281,15 +1281,15 @@ write.csv(yraverage_wide, "Results/VIE averages_for regions_Secrecy Score_wide.c
 
 
 # .. Calculate average measures across years per income group ####
-measures <- c("wiVClaims", "wiVLiabilities",
+measures <- c("wiVdClaims", "wiVLiabilities",
               "wiVDIdI", "wiVDII", "wiVDIdO", "wiVDIO",
               "wiVPIA", "wiVPIL", "wiVPIdL",
               "wiVExport", "wiVImport",
-              "wiIClaims", "wiILiabilities",
+              "wiIdClaims", "wiILiabilities",
               "wiIDIdI", "wiIDII", "wiIDIdO", "wiIDIO",
               "wiIPIA", "wiIPIL", "wiIPIdL",
               "wiIExport", "wiIImport",
-              "wiEClaims", "wiELiabilities",
+              "wiEdClaims", "wiELiabilities",
               "wiEDIdI", "wiEDII", "wiEDIdO", "wiEDIO",
               "wiEPIA", "wiEPIL", "wiEPIdL",
               "wiEExport", "wiEImport")
@@ -1307,7 +1307,7 @@ yraverage <- yraverage %>%
   distinct(rIncome, .keep_all = TRUE)
 
 yraverage$xwiVBanking <- rowMeans(subset(yraverage,
-                                         select = c(xwiVClaims, xwiVLiabilities)),
+                                         select = c(xwiVdClaims, xwiVLiabilities)),
                                   na.rm = T)
 yraverage$xwiVDirectInv <- rowMeans(subset(yraverage,
                                            select = c(xwiVDII, xwiVDIdO)),
@@ -1319,7 +1319,7 @@ yraverage$xwiVTrade <- rowMeans(subset(yraverage,
                                        select = c(xwiVExport, xwiVImport)),
                                 na.rm = T)
 yraverage$xwiIBanking <- rowMeans(subset(yraverage,
-                                         select = c(xwiIClaims, xwiILiabilities)),
+                                         select = c(xwiIdClaims, xwiILiabilities)),
                                   na.rm = T)
 yraverage$xwiIDirectInv <- rowMeans(subset(yraverage,
                                            select = c(xwiIDII, xwiIDIdO)),
@@ -1331,7 +1331,7 @@ yraverage$xwiITrade <- rowMeans(subset(yraverage,
                                        select = c(xwiIExport, xwiIImport)),
                                 na.rm = T)
 yraverage$xwiEBanking <- rowMeans(subset(yraverage,
-                                         select = c(xwiEClaims, xwiELiabilities)),
+                                         select = c(xwiEdClaims, xwiELiabilities)),
                                   na.rm = T)
 yraverage$xwiEDirectInv <- rowMeans(subset(yraverage,
                                            select = c(xwiEDII, xwiEDIdO)),
@@ -1345,15 +1345,15 @@ yraverage$xwiETrade <- rowMeans(subset(yraverage,
 
 yraverage <- melt(yraverage, 
                   id.vars = c("rIncome"),
-                  measure.vars = c("xwiVClaims", "xwiVLiabilities",
+                  measure.vars = c("xwiVdClaims", "xwiVLiabilities",
                                    "xwiVDIdI", "xwiVDII", "xwiVDIdO", "xwiVDIO", 
                                    "xwiVPIA", "xwiVPIL", "xwiVPIdL", 
                                    "xwiVExport", "xwiVImport",
-                                   "xwiIClaims", "xwiILiabilities",
+                                   "xwiIdClaims", "xwiILiabilities",
                                    "xwiIDIdI", "xwiIDII", "xwiIDIdO", "xwiIDIO",
                                    "xwiIPIA", "xwiIPIL", "xwiIPIdL",
                                    "xwiIExport", "xwiIImport",
-                                   "xwiEClaims", "xwiELiabilities",
+                                   "xwiEdClaims", "xwiELiabilities",
                                    "xwiEDIdI", "xwiEDII", "xwiEDIdO", "xwiEDIO", 
                                    "xwiEPIA", "xwiEPIL", "xwiEPIdL",
                                    "xwiEExport", "xwiEImport",
@@ -1468,15 +1468,15 @@ rm(yraverage, conduits, yraverage_wide, countryrisk, dat)
 timeseries <- panelSJ %>%
   distinct(rRegion, year, .keep_all = TRUE) %>%
   select(rRegion, year,
-         wrVClaims:wrVImport,
-         wrIClaims:wrIImport,
-         wrEClaims:wrEImport) %>%
+         wrVdClaims:wrVImport,
+         wrIdClaims:wrIImport,
+         wrEdClaims:wrEImport) %>%
   arrange(rRegion, year)
 
 
 # .... Calculate average V for each measure in each year ####
 timeseries$wrVBanking <- rowMeans(subset(timeseries,
-                                         select = c(wrVClaims, wrVLiabilities)),
+                                         select = c(wrVdClaims, wrVLiabilities)),
                                   na.rm = T)
 timeseries$wrVDirectInv <- rowMeans(subset(timeseries,
                                            select = c(wrVDII, wrVDIdO)),
@@ -1491,7 +1491,7 @@ timeseries$wrVTrade <- rowMeans(subset(timeseries,
 
 # .... Calculate average I for each measure in each year ####
 timeseries$wrIBanking <- rowMeans(subset(timeseries,
-                                         select = c(wrIClaims, wrILiabilities)),
+                                         select = c(wrIdClaims, wrILiabilities)),
                                   na.rm = T)
 timeseries$wrIDirectInv <- rowMeans(subset(timeseries,
                                            select = c(wrIDII, wrIDIdO)),
@@ -1506,7 +1506,7 @@ timeseries$wrITrade <- rowMeans(subset(timeseries,
 
 # .... Calculate average E for each measure in each year ####
 timeseries$wrEBanking <- rowMeans(subset(timeseries,
-                                         select = c(wrEClaims, wrELiabilities)),
+                                         select = c(wrEdClaims, wrELiabilities)),
                                   na.rm = T)
 timeseries$wrEDirectInv <- rowMeans(subset(timeseries,
                                            select = c(wrEDII, wrEDIdO)),
@@ -1573,15 +1573,15 @@ write.csv(timeseries_wide, "Results/VIE time series_for regions_Secrecy Score_wi
 timeseries <- panelSJ %>% 
   distinct(rIncome, year, .keep_all = TRUE) %>%
   select(rIncome, year,
-         wiVClaims:wiVImport,
-         wiIClaims:wiIImport,
-         wiEClaims:wiEImport) %>%
+         wiVdClaims:wiVImport,
+         wiIdClaims:wiIImport,
+         wiEdClaims:wiEImport) %>%
   arrange(rIncome, year)
 
 
 # .... Calculate average V for each measure in each year ####
 timeseries$wiVBanking <- rowMeans(subset(timeseries,
-                                         select = c(wiVClaims, wiVLiabilities)),
+                                         select = c(wiVdClaims, wiVLiabilities)),
                                   na.rm = T)
 timeseries$wiVDirectInv <- rowMeans(subset(timeseries,
                                            select = c(wiVDII, wiVDIdO)),
@@ -1596,7 +1596,7 @@ timeseries$wiVTrade <- rowMeans(subset(timeseries,
 
 # .... Calculate average I for each measure in each year ####
 timeseries$wiIBanking <- rowMeans(subset(timeseries,
-                                         select = c(wiIClaims, wiILiabilities)),
+                                         select = c(wiIdClaims, wiILiabilities)),
                                   na.rm = T)
 timeseries$wiIDirectInv <- rowMeans(subset(timeseries,
                                            select = c(wiIDII, wiIDIdO)),
@@ -1611,7 +1611,7 @@ timeseries$wiITrade <- rowMeans(subset(timeseries,
 
 # .... Calculate average E for each measure in each year ####
 timeseries$wiEBanking <- rowMeans(subset(timeseries,
-                                         select = c(wiEClaims, wiELiabilities)),
+                                         select = c(wiEdClaims, wiELiabilities)),
                                   na.rm = T)
 timeseries$wiEDirectInv <- rowMeans(subset(timeseries,
                                            select = c(wiEDII, wiEDIdO)),
@@ -1699,13 +1699,13 @@ incomegroup.label <- c("HIC", "UMC", "LMC", "LIC", "No Income Group")
 flowstock <- c("Banking Positions", "Direct Investment", "Portfolio Investment", "Trade")
 
 vars <- list()
-vars$BankingPositions <- c("Claims", "Liabilities")
+vars$BankingPositions <- c("dClaims", "Liabilities")
 vars$DirectInvestment <- c("DII", "DIdO")
 vars$PortInvestment <- c("PIA", "PIdL")
 vars$Trade <- c("Export", "Import")
 
 var.labels <- list()
-var.labels$BankingPositions <- c("Claims", "Liabilities")
+var.labels$BankingPositions <- c("Claims (derived)", "Liabilities")
 var.labels$DirectInvestment <- c("Inward", "Outward (derived)")
 var.labels$PortInvestment <- c("Assets", "Liabilities (derived)")
 var.labels$Trade <- c("Exports", "Imports")
@@ -1719,49 +1719,49 @@ cols$Trade <- c("#FAD510", "#800080")
 graph <- melt(panelSJ,
               id.vars = c("id", "reporter.ISO", "partner.ISO", "year",
                           "reporter", "partner", "rRegion", "rIncome", "pRegion", "pIncome"),
-              measure.vars = c("VClaims", "VLiabilities",
+              measure.vars = c("VdClaims", "VLiabilities",
                                "VDIdI", "VDII", "VDIdO", "VDIO",
                                "VPIA", "VPIL", "VPIdL",
                                "VExport", "VImport",
-                               "IClaims", "ILiabilities",
+                               "IdClaims", "ILiabilities",
                                "IDIdI", "IDII", "IDIdO", "IDIO",
                                "IPIA", "IPIL", "IPIdL",
                                "IExport", "IImport",
-                               "EClaims", "ELiabilities",
+                               "EdClaims", "ELiabilities",
                                "EDIdI", "EDII", "EDIdO", "EDIO",
                                "EPIA", "EPIL", "EPIdL",
                                "EExport", "EImport",
-                               "wrTotClaims", "wrTotLiabilities",
+                               "wrTotdClaims", "wrTotLiabilities",
                                "wrTotDIdI", "wrTotDII", "wrTotDIdO", "wrTotDIO",
                                "wrTotPIA", "wrTotPIL", "wrTotPIdL",
                                "wrTotExport", "wrTotImport",
-                               "wrVClaims", "wrVLiabilities",
+                               "wrVdClaims", "wrVLiabilities",
                                "wrVDIdI", "wrVDII", "wrVDIdO", "wrVDIO",
                                "wrVPIA", "wrVPIL", "wrVPIdL",
                                "wrVExport", "wrVImport",
                                "wrrGDP",
-                               "wrIClaims", "wrILiabilities",
+                               "wrIdClaims", "wrILiabilities",
                                "wrIDIdI", "wrIDII", "wrIDIdO", "wrIDIO",
                                "wrIPIA", "wrIPIL", "wrIPIdL",
                                "wrIExport", "wrIImport",
-                               "wrEClaims", "wrELiabilities",
+                               "wrEdClaims", "wrELiabilities",
                                "wrEDIdI", "wrEDII", "wrEDIdO", "wrEDIO",
                                "wrEPIA", "wrEPIL", "wrEPIdL",
                                "wrEExport", "wrEImport",
-                               "wiTotClaims", "wiTotLiabilities",
+                               "wiTotdClaims", "wiTotLiabilities",
                                "wiTotDIdI", "wiTotDII", "wiTotDIdO", "wiTotDIO",
                                "wiTotPIA", "wiTotPIL", "wiTotPIdL",
                                "wiTotExport", "wiTotImport",
-                               "wiVClaims", "wiVLiabilities",
+                               "wiVdClaims", "wiVLiabilities",
                                "wiVDIdI", "wiVDII", "wiVDIdO", "wiVDIO",
                                "wiVPIA", "wiVPIL", "wiVPIdL",
                                "wiVExport", "wiVImport",
                                "wirGDP",
-                               "wiIClaims", "wiILiabilities",
+                               "wiIdClaims", "wiILiabilities",
                                "wiIDIdI", "wiIDII", "wiIDIdO", "wiIDIO",
                                "wiIPIA", "wiIPIL", "wiIPIdL",
                                "wiIExport", "wiIImport",
-                               "wiEClaims", "wiELiabilities",
+                               "wiEdClaims", "wiELiabilities",
                                "wiEDIdI", "wiEDII", "wiEDIdO", "wiEDIO",
                                "wiEPIA", "wiEPIL", "wiEPIdL",
                                "wiEExport", "wiEImport"))
@@ -1801,14 +1801,14 @@ countryrisk <- gather(countryrisk, variable, value, 2:ncol(countryrisk),
 reporters <- unique(panelSJ$reporter)
 reporters.string <- iconv(reporters, from = "UTF-8", to = "ASCII//TRANSLIT")
 
-var.labels.all <- setNames(rep(c("Banking Claims", "Banking Liabilities",
+var.labels.all <- setNames(rep(c("Banking Claims (derived)", "Banking Liabilities",
                                  "FDI Inward", "FDI Outward (derived)",
                                  "Portfolio Assets", "Portfolio Liabilities (derived)",
                                  "Exports", "Imports"), 3),
                            paste0(c(rep("V", 8),
                                     rep("I", 8),
                                     rep("E", 8)), 
-                                  rep(c("Claims", "Liabilities",
+                                  rep(c("dClaims", "Liabilities",
                                         "DII", "DIdO",
                                         "PIA", "PIdL",
                                         "Export", "Import"), 3)))
@@ -1820,12 +1820,12 @@ col.labels.all <- setNames(rep(c("#C93312", "#899DA4",
                            paste0(c(rep("V", 8),
                                     rep("I", 8),
                                     rep("E", 8)), 
-                                  rep(c("Claims", "Liabilities",
+                                  rep(c("dClaims", "Liabilities",
                                         "DII", "DIdO",
                                         "PIA", "PIdL",
                                         "Export", "Import"), 3)))
 
-vars.all <- paste("Claims", "Liabilities",
+vars.all <- paste("dClaims", "Liabilities",
                   "DII", "DIdO",
                   "PIA", "PIdL",
                   "Export", "Import", sep = "|")
@@ -1977,25 +1977,25 @@ rm(graph, countryrisk, dat)
 # EXPORT RESULTS            ####
 ## ## ## ## ## ## ## ## ## ## ##
 
-missing <- which(rowSums(is.na(select(panelSJ, VClaims:wiEImport))) ==
-                   ncol(select(panelSJ, VClaims:wiEImport)))
+missing <- which(rowSums(is.na(select(panelSJ, VdClaims:wiEImport))) ==
+                   ncol(select(panelSJ, VdClaims:wiEImport)))
 rm(missing)
-allzero <- which(rowSums(select(panelSJ, VClaims:wiEImport), na.rm = T) == 0)
+allzero <- which(rowSums(select(panelSJ, VdClaims:wiEImport), na.rm = T) == 0)
 rm(allzero)
 
 results <- panelSJ %>%
   group_by(rRegion, year) %>%
   distinct(reporter, .keep_all = TRUE) %>%
   select(reporter, reporter.ISO, year, rRegion, rIncome,
-         VClaims:VImport,
-         IClaims:IImport,
-         EClaims:EImport,
-         wrVClaims:wrVImport,
-         wrIClaims:wrIImport,
-         wrEClaims:wrEImport,
-         wiVClaims:wiVImport,
-         wiIClaims:wiIImport,
-         wiEClaims:wiEImport) %>%
+         VdClaims:VImport,
+         IdClaims:IImport,
+         EdClaims:EImport,
+         wrVdClaims:wrVImport,
+         wrIdClaims:wrIImport,
+         wrEdClaims:wrEImport,
+         wiVdClaims:wiVImport,
+         wiIdClaims:wiIImport,
+         wiEdClaims:wiEImport) %>%
   arrange(rRegion, reporter, year) %>%
   ungroup()
 
@@ -2007,39 +2007,39 @@ write.csv(results, "Results/Results_Secrecy Score.csv", row.names = FALSE)
 results <- melt(results,
                 id.vars = c("reporter", "reporter.ISO", "year",
                             "rRegion", "rIncome"),
-                measure.vars = c("VClaims", "VLiabilities", 
+                measure.vars = c("VdClaims", "VLiabilities", 
                                  "VDIdI", "VDII", "VDIdO", "VDIO", 
                                  "VPIA", "VPIL", "VPIdL", 
                                  "VExport", "VImport",
-                                 "IClaims", "ILiabilities", 
+                                 "IdClaims", "ILiabilities", 
                                  "IDIdI", "IDII", "IDIdO", "IDIO", 
                                  "IPIA", "IPIL", "IPIdL", 
                                  "IExport", "IImport", 
-                                 "EClaims", "ELiabilities", 
+                                 "EdClaims", "ELiabilities", 
                                  "EDIdI", "EDII", "EDIdO", "EDIO", 
                                  "EPIA", "EPIL", "EPIdL",
                                  "EExport", "EImport", 
-                                 "wrVClaims", "wrVLiabilities",
+                                 "wrVdClaims", "wrVLiabilities",
                                  "wrVDIdI", "wrVDII", "wrVDIdO", "wrVDIO",
                                  "wrVPIA", "wrVPIL", "wrVPIdL", 
                                  "wrVExport", "wrVImport", 
-                                 "wrIClaims", "wrILiabilities", 
+                                 "wrIdClaims", "wrILiabilities", 
                                  "wrIDIdI", "wrIDII", "wrIDIdO", "wrIDIO", 
                                  "wrIPIA", "wrIPIL", "wrIPIdL", 
                                  "wrIExport", "wrIImport",
-                                 "wrEClaims", "wrELiabilities", 
+                                 "wrEdClaims", "wrELiabilities", 
                                  "wrEDIdI", "wrEDII", "wrEDIdO", "wrEDIO", 
                                  "wrEPIA", "wrEPIL", "wrEPIdL", 
                                  "wrEExport", "wrEImport", 
-                                 "wiVClaims", "wiVLiabilities", 
+                                 "wiVdClaims", "wiVLiabilities", 
                                  "wiVDIdI", "wiVDII", "wiVDIdO", "wiVDIO", 
                                  "wiVPIA", "wiVPIL", "wiVPIdL",
                                  "wiVExport", "wiVImport", 
-                                 "wiIClaims", "wiILiabilities",
+                                 "wiIdClaims", "wiILiabilities",
                                  "wiIDIdI", "wiIDII", "wiIDIdO", "wiIDIO",
                                  "wiIPIA", "wiIPIL", "wiIPIdL", 
                                  "wiIExport", "wiIImport", 
-                                 "wiEClaims", "wiELiabilities", 
+                                 "wiEdClaims", "wiELiabilities", 
                                  "wiEDIdI", "wiEDII", "wiEDIdO", "wiEDIO", 
                                  "wiEPIA", "wiEPIL", "wiEPIdL", 
                                  "wiEExport", "wiEImport"))
