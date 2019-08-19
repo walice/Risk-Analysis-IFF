@@ -92,6 +92,7 @@ setwd("C:/cloudstorage/googledrive/Projects/Tax Justice Network/Consultancy 2 - 
 #setwd("D:/Google Drive/Projects/Tax Justice Network/Consultancy 2 - summer 18/Risk-based IFF/") # Alice laptop
 library(plyr) # Must load before dplyr
 library(dplyr)
+library(ggpubr)
 library(ggplot2)
 library(gmodels)
 library(RColorBrewer)
@@ -405,11 +406,11 @@ rm(panel)
 
 
 # .. Check zero values in measures due to summing over NAs ####
-summary(panelSJ[,72:205])
+summary(panelSJ[,73:206])
 
 # .... For Totals ####
 grep("Tot", names(panelSJ))
-for (c in 11:21){
+for (c in 11:23){
   z <- which(panelSJ[, c+61] == 0) # increment is -40 if panel w/o KFSIs
   zeroTot <- panelSJ[z, ]
   print(unique(zeroTot[, c]))
@@ -493,7 +494,7 @@ for (c in 11:21){
 # We can convert them back to NAs.
 # na.rm = T is needed when summing otherwise a single NA value will return NAs (even though there may be valid other values).
 colnames(panelSJ)
-cols <- c(94:104,139:149,184:194)
+cols <- c(95:105,140:150,185:195)
 panelSJ[, cols][panelSJ[, cols] == 0] <- NA
 rm(zeroTot, c, cols, z)
 
@@ -524,7 +525,7 @@ for (c in 11:21){
 # We can convert them back to NAs.
 # na.rm = T is needed when summing otherwise a single NA value will return NAs (even though there may be valid other values).
 colnames(panelSJ)
-cols <- c(105:115,150:160,195:205)
+cols <- c(106:116,151:161,196:206)
 panelSJ[, cols][panelSJ[, cols] == 0] <- NA
 rm(zeroTot, c, cols, z)
 
@@ -537,6 +538,8 @@ panelSJ <- panelSJ %>%
   arrange(id)
 save(panelSJ, file = "Data/panelSJ.RData")
 write.csv(panelSJ, "Results/panelSJ_Secrecy Score.csv", row.names = FALSE)
+
+load("Data/panelSJ.RData")
 
 
 
@@ -1660,8 +1663,38 @@ for (m in 1:length(measure)){
     ggsave(g,
            file = paste0("Figures/Overall Secrecy Score/Scores over time/For regions/", measure[m], "_", region.label[r],".pdf"),
            width = 6, height = 5, units = "in")
+    ggsave(g,
+           file = paste0("Figures/Overall Secrecy Score/Scores over time/For regions/PNG/", measure[m], "_", region.label[r],".png"),
+           width = 6, height = 5, units = "in")
   }
 }
+
+g1 <- ggplot(af %>% filter(str_detect(variable, "wrV")),
+       aes(x = year, y = value, color = variable)) +
+  geom_line(size = 1.5) +
+  xlab("Year") + ylab(paste0("Vulnerability Score")) +
+  scale_color_manual(labels = c("Banking Positions","Direct Investment",
+                                "Portfolio Investment", "Trade"),
+                     values = rev(wes_palette("Chevalier1"))) +
+  theme(legend.title = element_blank()) +
+  scale_x_continuous(breaks= pretty_breaks())
+
+g2 <- ggplot(af %>% filter(str_detect(variable, "wrE")),
+             aes(x = year, y = value, color = variable)) +
+  geom_line(size = 1.5) +
+  xlab("Year") + ylab(paste0("Exposure Score")) +
+  scale_color_manual(labels = c("Banking Positions","Direct Investment",
+                                "Portfolio Investment", "Trade"),
+                     values = rev(wes_palette("Chevalier1"))) +
+  theme(legend.title = element_blank()) +
+  scale_x_continuous(breaks= pretty_breaks())
+
+g <- annotate_figure(ggarrange(g1, g2, common.legend = T, legend = "bottom"),
+                top = text_grob("Vulnerability and Exposure over time in Africa"))
+ggsave(g,
+       file = paste0("Figures/Overall Secrecy Score/Scores over time/For regions/PNG/Combined chart Africa.png"),
+       width = 6, height = 5, units = "in")
+rm(g1, g2, g)
 
 
 # .... Export ####
@@ -1764,6 +1797,9 @@ for (m in 1:length(measure)){
       scale_x_continuous(breaks= pretty_breaks())
     ggsave(g, 
            file = paste0("Figures/Overall Secrecy Score/Scores over time/For income groups/", measure[m], "_", incomegroup[i],".pdf"), 
+           width = 6, height = 5, units = "in")
+    ggsave(g, 
+           file = paste0("Figures/Overall Secrecy Score/Scores over time/For income groups/PNG/", measure[m], "_", incomegroup[i],".png"), 
            width = 6, height = 5, units = "in")
   }
 }
